@@ -10,12 +10,15 @@ import Login from "./Login";
 const fugaz = Fugaz_One({ subsets: ["latin"], weight: ["400"] });
 import { db } from "@/firebase";
 import NoteModal from "./NoteModal";
+import Button from "./Button";
 
 export default function Dashboard() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
   const [data, setData] = useState({});
   const [selectedMood, setSelectedMood] = useState(null); // State for selected mood
   const [showNoteModal, setShowNoteModal] = useState(false); // Control modal visibility
+  const [selectedNote, setSelectedNote] = useState(null);
+  const [isNoteVisible, setIsNoteVisible] = useState(false);
   const now = new Date();
 
   // count the stats to be displayed in the statuses
@@ -80,6 +83,14 @@ export default function Dashboard() {
     }
   }
 
+  const handleNoteClick = (note) => {
+    setSelectedNote(note);
+    setIsNoteVisible(true);
+  };
+
+  const toggleNoteVisibility = () => {
+    setIsNoteVisible(!isNoteVisible);
+  };
   const moods = {
     "&*@#$": "😭",
     Sad: "😢",
@@ -152,6 +163,7 @@ export default function Dashboard() {
       <Calendar
         completeData={data}
         handleSetMoodAndNote={handleSetMoodAndNote}
+        onNoteClick={handleNoteClick}
       />
 
       {/* Note modal to add optional note */}
@@ -163,6 +175,15 @@ export default function Dashboard() {
           }}
           onClose={() => setShowNoteModal(false)}
         />
+      )}
+      {/* display note when user clicks the note emoji */}
+      {selectedNote && isNoteVisible && (
+        <div className="relative flex flex-col bg-indigo-50 text-indigo-500 p-4 gap-4 rounded-lg">
+          <p>{selectedNote}</p>
+          <div className="flex justify-end mt-auto">
+            <Button clickHandler={toggleNoteVisibility} text="Close" dark />
+          </div>
+        </div>
       )}
     </div>
   );

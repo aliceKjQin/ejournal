@@ -6,7 +6,6 @@ import { Fugaz_One, Montaga } from "next/font/google";
 
 const fugaz = Fugaz_One({ subsets: ["latin"], weight: ["400"] });
 
-
 const months = {
   January: "Jan",
   February: "Feb",
@@ -33,19 +32,20 @@ const dayList = [
 ];
 
 export default function Calendar(props) {
-  const { demo, completeData, handleSetMood } = props;
+  const { demo, completeData, handleSetMoodAndNote, onNoteClick } = props;
 
   const now = new Date();
   const currentMonth = now.getMonth(); // numerical number for the month from 0 - 11
-  const monthsArr = Object.keys(months)
-  console.log(monthsArr) 
+  const monthsArr = Object.keys(months);
+  console.log(monthsArr);
   const [selectedMonth, setSelectedMonth] = useState(
     Object.keys(months)[currentMonth]
   );
-  const numericMonth = monthsArr.indexOf(selectedMonth)
+  const numericMonth = monthsArr.indexOf(selectedMonth);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
-  const data = completeData?.[selectedYear]?.[numericMonth] || (demo ? baseRating : {});
+  const data =
+    completeData?.[selectedYear]?.[numericMonth] || (demo ? baseRating : {});
   console.log(data);
 
   function handleIncrementAndDecrementMonth(val) {
@@ -53,16 +53,14 @@ export default function Calendar(props) {
     // if we hit the bounds of the months, then we can just adjust the year that is displayed instead
     if (numericMonth + val < 0) {
       // set month value = 11 which is Dec and decrement the year
-      setSelectedMonth(monthsArr[monthsArr.length-1])
-      setSelectedYear(curr => curr -1)
-
+      setSelectedMonth(monthsArr[monthsArr.length - 1]);
+      setSelectedYear((curr) => curr - 1);
     } else if (numericMonth + val > 11) {
       // set month numeric value = 0 which is Jan and increment the year
-      setSelectedMonth(monthsArr[0])
-      setSelectedYear(curr => curr + 1)  // why not just curr + 1
+      setSelectedMonth(monthsArr[0]);
+      setSelectedYear((curr) => curr + 1); // why not just curr + 1
     } else {
-      setSelectedMonth(monthsArr[numericMonth + val])
-      
+      setSelectedMonth(monthsArr[numericMonth + val]);
     }
   }
 
@@ -84,16 +82,29 @@ export default function Calendar(props) {
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-5 gap-4">
-        <button className="mr-auto text-indigo-400 text-lg sm:text-xl duration-200 hover:opacity-60" onClick={() => handleIncrementAndDecrementMonth(-1)}><i className="fa-solid fa-circle-chevron-left"></i></button>
-        <p className={`text-center textGradient col-span-3 whitespace-nowrap ${fugaz.className}`}>{selectedMonth}, {selectedYear}</p>
-        <button className="ml-auto text-indigo-400 text-lg sm:text-xl duration-200 hover:opacity-60" onClick={() => handleIncrementAndDecrementMonth(1)}><i class="fa-solid fa-circle-chevron-right"></i></button>
+        <button
+          className="mr-auto text-indigo-400 text-lg sm:text-xl duration-200 hover:opacity-60"
+          onClick={() => handleIncrementAndDecrementMonth(-1)}
+        >
+          <i className="fa-solid fa-circle-chevron-left"></i>
+        </button>
+        <p
+          className={`text-center textGradient col-span-3 whitespace-nowrap ${fugaz.className}`}
+        >
+          {selectedMonth}, {selectedYear}
+        </p>
+        <button
+          className="ml-auto text-indigo-400 text-lg sm:text-xl duration-200 hover:opacity-60"
+          onClick={() => handleIncrementAndDecrementMonth(1)}
+        >
+          <i class="fa-solid fa-circle-chevron-right"></i>
+        </button>
       </div>
       <div className="flex flex-col overflow-hidden gap-1 py-4 sm:py-6 md:py-10">
         {[...Array(numRows).keys()].map((row, rowIndex) => {
           return (
             <div key={rowIndex} className="grid grid-cols-7">
               {dayList.map((dayOfWeek, dayOfWeekIndex) => {
-
                 let dayIndex =
                   rowIndex * 7 + dayOfWeekIndex - (firstDayOfMonth - 1);
 
@@ -121,7 +132,9 @@ export default function Calendar(props) {
 
                 // Fetch mood and note data, check for demo fallback
                 let dayData = data[dayIndex] || {};
-                let color = dayData.mood ? gradients.indigo[dayData.mood] : "white";
+                let color = dayData.mood
+                  ? gradients.indigo[dayData.mood]
+                  : "white";
                 let hasNote = dayData.note ? true : false;
 
                 return (
@@ -133,7 +146,16 @@ export default function Calendar(props) {
                     } ${color === "white" ? "text-indigo-400" : "text-white"}`}
                   >
                     <p>{dayIndex}</p>
-                    {hasNote && <span role="img" aria-label="note">📝</span>}
+                    {hasNote && (
+                      <span
+                        role="img"
+                        aria-label="note"
+                        onClick={() => onNoteClick(dayData.note)}
+                        className="cursor-pointer"
+                      >
+                        📝
+                      </span>
+                    )}
                   </div>
                 );
               })}
