@@ -9,10 +9,13 @@ import Loading from "./Loading";
 import Login from "./Login";
 const fugaz = Fugaz_One({ subsets: ["latin"], weight: ["400"] });
 import { db } from "@/firebase";
+import NoteModal from "./NoteModal";
 
 export default function Dashboard() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
   const [data, setData] = useState({});
+  const [selectedMood, setSelectedMood] = useState(null); // State for selected mood
+  const [showNoteModal, setShowNoteModal] = useState(false); // Control modal visibility
   const now = new Date();
 
   // count the stats to be displayed in the statuses
@@ -23,7 +26,7 @@ export default function Dashboard() {
     for (let year in data) {
       for (let month in data[year]) {
         for (let day in data[year][month]) {
-          let days_mood = data[year][month][day];
+          let days_mood = data[year][month][day].mood;
           total_number_of_days++;
           sum_moods += days_mood;
         }
@@ -35,27 +38,25 @@ export default function Dashboard() {
     };
   }
 
-
   const statuses = {
     ...countValues(),
     time_remaining: `${23 - now.getHours()}H ${60 - now.getMinutes()}M`,
   };
 
-  // the data demo is in README.md
-  async function handleSetMood(mood) {
+  async function handleSetMoodAndNote(mood, note = "") {
     const day = now.getDate();
     const month = now.getMonth();
     const year = now.getFullYear();
 
     try {
-      const newData = { ...userDataObj };
+      const newData = { ...userDataObj }; // create a copy of userDataObj
       if (!newData?.[year]) {
         newData[year] = {};
       }
       if (!newData?.[year]?.[month]) {
         newData[year][month] = {};
       }
-      newData[year][month][day] = mood;
+      newData[year][month][day] = { mood, note };
       // update the current state
       setData(newData);
       // update the global state
@@ -67,12 +68,13 @@ export default function Dashboard() {
         {
           [year]: {
             [month]: {
-              [day]: mood,
+              [day]: { mood, note },
             },
           },
         },
         { merge: true }
       );
+      console.log("Mood saved successfully!");
     } catch (err) {
       console.log(`Failed to set data: ${err.message}`);
     }
@@ -131,7 +133,8 @@ export default function Dashboard() {
             <button
               onClick={() => {
                 const currentMoodValue = moodIndex + 1;
-                handleSetMood(currentMoodValue);
+                setSelectedMood(currentMoodValue);
+                setShowNoteModal(true);
               }}
               key={moodIndex}
               className={`p-4 px-5 rounded-2xl purpleShadow duration:200 bg-indigo-50 hover:bg-indigo-100 text-center flex flex-col gap-2 flex-1`}
@@ -146,7 +149,21 @@ export default function Dashboard() {
           );
         })}
       </div>
-      <Calendar completeData={data} handleSetMood={handleSetMood} />
+      <Calendar
+        completeData={data}
+        handleSetMoodAndNote={handleSetMoodAndNote}
+      />
+
+      {/* Note modal to add optional note */}
+      {showNoteModal && (
+        <NoteModal
+          onSave={(note) => {
+            handleSetMoodAndNote(selectedMood, note);
+            setShowNoteModal(false);
+          }}
+          onClose={() => setShowNoteModal(false)}
+        />
+      )}
     </div>
   );
 }

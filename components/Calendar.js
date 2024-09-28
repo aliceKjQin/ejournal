@@ -45,8 +45,8 @@ export default function Calendar(props) {
   const numericMonth = monthsArr.indexOf(selectedMonth)
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
-  const data = completeData?.[selectedYear]?.[numericMonth] || {};
-  console.log(completeData);
+  const data = completeData?.[selectedYear]?.[numericMonth] || (demo ? baseRating : {});
+  console.log(data);
 
   function handleIncrementAndDecrementMonth(val) {
     // val +1 -1
@@ -93,10 +93,13 @@ export default function Calendar(props) {
           return (
             <div key={rowIndex} className="grid grid-cols-7">
               {dayList.map((dayOfWeek, dayOfWeekIndex) => {
+
                 let dayIndex =
                   rowIndex * 7 + dayOfWeekIndex - (firstDayOfMonth - 1);
 
-                // determine whether a day should be displayed or left blank in the calendar grid
+                // daysToDisplay: The number of days plus the offset for the starting weekday.
+                // If dayIndex > daysInMonth, this means we've gone beyond the last day of the month, so no day should be displayed (dayDisplay = false).
+                // For the first row (row === 0), days before firstDayOfMonth should not be displayed (they belong to the previous month), so dayDisplay = false.
                 let dayDisplay =
                   dayIndex > daysInMonth
                     ? false
@@ -110,11 +113,16 @@ export default function Calendar(props) {
                   return <div className="bg-white" key={dayOfWeekIndex}></div>;
                 }
 
-                let color = demo
-                  ? gradients.indigo[baseRating[dayIndex]]
-                  : dayIndex in data
-                  ? gradients.indigo[data[dayIndex]]
-                  : "white";
+                // let color = demo
+                //   ? gradients.indigo[baseRating[dayIndex]]
+                //   : dayIndex in data
+                //   ? gradients.indigo[data[dayIndex]]
+                //   : "white";
+
+                // Fetch mood and note data, check for demo fallback
+                let dayData = data[dayIndex] || {};
+                let color = dayData.mood ? gradients.indigo[dayData.mood] : "white";
+                let hasNote = dayData.note ? true : false;
 
                 return (
                   <div
@@ -125,6 +133,7 @@ export default function Calendar(props) {
                     } ${color === "white" ? "text-indigo-400" : "text-white"}`}
                   >
                     <p>{dayIndex}</p>
+                    {hasNote && <span role="img" aria-label="note">📝</span>}
                   </div>
                 );
               })}
