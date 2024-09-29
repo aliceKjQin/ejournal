@@ -40,7 +40,7 @@ export default function Login() {
       <h3 className={`text-4xl sm:text-5xl md:text-6xl ${fugaz.className}`}>
         {isRegister ? "Register" : "Log In"}
       </h3>
-      <p>You're one step away!</p>
+      <p>You&#39;re one step away!</p>
       <input
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -58,7 +58,7 @@ export default function Login() {
         <Button clickHandler={handleSubmit} text={authenticating ? "submitting" : "submit"} full />
       </div>
       <p className="text-center">
-        {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
+        {isRegister ? "Already have an account?" : "Don\'t have an account?"}{" "}
         <button
           onClick={() => setIsRegister(!isRegister)}
           className="text-purple-400"
