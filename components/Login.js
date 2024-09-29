@@ -57,8 +57,9 @@ export default function Login() {
       <div className="max-w-[400px] w-full mx-auto">
         <Button clickHandler={handleSubmit} text={authenticating ? "submitting" : "submit"} full />
       </div>
+      {/* eslint-disable-next-line react/no-unescaped-entities */}
       <p className="text-center">
-        {isRegister ? "Already have an account?" : "Don\'t have an account?"}{" "}
+        {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
         <button
           onClick={() => setIsRegister(!isRegister)}
           className="text-purple-400"
