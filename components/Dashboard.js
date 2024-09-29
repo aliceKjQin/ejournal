@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [showNoteModal, setShowNoteModal] = useState(false); // Control modal visibility
   const [selectedNote, setSelectedNote] = useState(null);
   const [isNoteVisible, setIsNoteVisible] = useState(false);
+  const [period, setPeriod] = useState(false);
   const now = new Date();
 
   // count the stats to be displayed in the statuses
@@ -45,7 +46,7 @@ export default function Dashboard() {
     ...countValues(),
     time_remaining: `${23 - now.getHours()}H ${60 - now.getMinutes()}M`,
   };
-
+  // handle set mood and note for the current calendar day
   async function handleSetMoodAndNote(mood, note = "") {
     const day = now.getDate();
     const month = now.getMonth();
@@ -59,7 +60,10 @@ export default function Dashboard() {
       if (!newData?.[year]?.[month]) {
         newData[year][month] = {};
       }
-      newData[year][month][day] = { mood, note };
+
+      // merge newly added mood and note with existing data for the day
+      const existingDayData = newData[year][month][day] || {}
+      newData[year][month][day] = { ...existingDayData, mood, note };
       // update the current state
       setData(newData);
       // update the global state
@@ -82,6 +86,48 @@ export default function Dashboard() {
       console.log(`Failed to set data: ${err.message}`);
     }
   }
+
+  // handle set period for the current calendar day
+  async function handleSetPeriod(period) {
+    const day = now.getDate();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+
+    try {
+      const newData = { ...userDataObj }; // create a copy of userDataObj
+      if (!newData?.[year]) {
+        newData[year] = {};
+      }
+      if (!newData?.[year]?.[month]) {
+        newData[year][month] = {};
+      }
+
+      // merge new period value with existing data for the day
+      const existingDayData = newData[year][month][day] || {}
+      newData[year][month][day] = {...existingDayData, period };
+      // update the current state
+      setData(newData);
+      // update the global state
+      setUserDataObj(newData);
+      // update firebase
+      const docRef = doc(db, "users", currentUser.uid);
+      const res = await setDoc(
+        docRef,
+        {
+          [year]: {
+            [month]: {
+              [day]: { period },
+            },
+          },
+        },
+        { merge: true }
+      );
+      console.log("Period saved successfully!");
+    } catch (err) {
+      console.log(`Failed to set data: ${err.message}`);
+    }
+  }
+
 
   const handleNoteClick = (note) => {
     setSelectedNote(note);
@@ -159,14 +205,20 @@ export default function Dashboard() {
             </button>
           );
         })}
+        <button
+          onClick={() => {
+            setPeriod(!period);
+            handleSetPeriod(period)
+          }}
+          className={`p-4 px-5 rounded-2xl purpleShadow duration:200 bg-indigo-50 hover:bg-indigo-100 text-center`}
+        >
+          <p className="text-4xl sm:text-5xl md:text-6xl">❤️</p>
+          <p className={`text-indigo-500 text-xs sm:text-sm md:text-base ${fugaz.className}`}>{period ? 'Add Period' : "Remove Period"}</p>
+        </button>
       </div>
-      <Calendar
-        completeData={data}
-        handleSetMoodAndNote={handleSetMoodAndNote}
-        onNoteClick={handleNoteClick}
-      />
+      <Calendar completeData={data} onNoteClick={handleNoteClick} />
 
-      {/* Note modal to add optional note */}
+      {/* Note modal to add optional note when user selects a mood */}
       {showNoteModal && (
         <NoteModal
           onSave={(note) => {

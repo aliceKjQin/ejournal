@@ -124,18 +124,13 @@ export default function Calendar(props) {
                   return <div className="bg-white" key={dayOfWeekIndex}></div>;
                 }
 
-                // let color = demo
-                //   ? gradients.indigo[baseRating[dayIndex]]
-                //   : dayIndex in data
-                //   ? gradients.indigo[data[dayIndex]]
-                //   : "white";
-
                 // Fetch mood and note data, check for demo fallback
                 let dayData = data[dayIndex] || {};
                 let color = dayData.mood
                   ? gradients.indigo[dayData.mood]
                   : "white";
                 let hasNote = dayData.note ? true : false;
+                let hasPeriod = dayData.period ? true : false;
 
                 return (
                   <div
@@ -154,6 +149,11 @@ export default function Calendar(props) {
                         className="cursor-pointer"
                       >
                         📝
+                      </span>
+                    )}
+                    {hasPeriod && (
+                      <span role="img" aria-label="period">
+                        ❤️
                       </span>
                     )}
                   </div>
