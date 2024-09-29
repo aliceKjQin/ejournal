@@ -11,12 +11,12 @@ export default function Hero() {
       <h1
         className={`text-5xl sm:text-6xl md:text-7xl text-center ${fugaz.className}`}
       >
-        <span className="textGradient">Broodl</span> helps you track{" "}
-        <span className="textGradient">daily</span> mood!
+        <span className="textGradient">bYou</span> helps you track{" "}
+        <span className="textGradient">cycle & mood</span> !
       </h1>
       <p className="text-lg sm:text-xl md:text-2xl text-center w-full mx-auto max-w-[600px]">
-        Create your mood record and see how you feel{" "}
-        <span className="font-semibold">everyday of every year.</span>
+        Track your pattern and be more productive {" "}
+        <span className="font-semibold">the self-care way</span>
       </p>
       <CallToAction />
       <Calendar demo />

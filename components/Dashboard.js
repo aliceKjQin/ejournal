@@ -19,8 +19,13 @@ export default function Dashboard() {
   const [showNoteModal, setShowNoteModal] = useState(false); // Control modal visibility
   const [selectedNote, setSelectedNote] = useState(null);
   const [isNoteVisible, setIsNoteVisible] = useState(false);
-  const [period, setPeriod] = useState(false);
+  const [period, setPeriod] = useState(true);
   const now = new Date();
+  const day = now.getDate();
+  const month = now.getMonth();
+  const year = now.getFullYear();
+  const hasPeriod = userDataObj?.[year]?.[month]?.[day]?.period === true;
+  console.log(hasPeriod)
 
   // count the stats to be displayed in the statuses
   function countValues() {
@@ -48,10 +53,6 @@ export default function Dashboard() {
   };
   // handle set mood and note for the current calendar day
   async function handleSetMoodAndNote(mood, note = "") {
-    const day = now.getDate();
-    const month = now.getMonth();
-    const year = now.getFullYear();
-
     try {
       const newData = { ...userDataObj }; // create a copy of userDataObj
       if (!newData?.[year]) {
@@ -62,7 +63,7 @@ export default function Dashboard() {
       }
 
       // merge newly added mood and note with existing data for the day
-      const existingDayData = newData[year][month][day] || {}
+      const existingDayData = newData[year][month][day] || {};
       newData[year][month][day] = { ...existingDayData, mood, note };
       // update the current state
       setData(newData);
@@ -89,10 +90,6 @@ export default function Dashboard() {
 
   // handle set period for the current calendar day
   async function handleSetPeriod(period) {
-    const day = now.getDate();
-    const month = now.getMonth();
-    const year = now.getFullYear();
-
     try {
       const newData = { ...userDataObj }; // create a copy of userDataObj
       if (!newData?.[year]) {
@@ -103,8 +100,8 @@ export default function Dashboard() {
       }
 
       // merge new period value with existing data for the day
-      const existingDayData = newData[year][month][day] || {}
-      newData[year][month][day] = {...existingDayData, period };
+      const existingDayData = newData[year][month][day] || {};
+      newData[year][month][day] = { ...existingDayData, period };
       // update the current state
       setData(newData);
       // update the global state
@@ -128,7 +125,6 @@ export default function Dashboard() {
     }
   }
 
-
   const handleNoteClick = (note) => {
     setSelectedNote(note);
     setIsNoteVisible(true);
@@ -138,11 +134,9 @@ export default function Dashboard() {
     setIsNoteVisible(!isNoteVisible);
   };
   const moods = {
-    "&*@#$": "😭",
-    Sad: "😢",
-    Existing: "😶",
-    Good: "😀",
-    Elated: "😍",
+    "Under the Weather": {emoji: "😩", bgColor: "bg-neutral-400" },
+    Meh: {emoji: "👎", bgColor: "bg-red-400" },
+    Productive: {emoji: "👍", bgColor: "bg-teal-400" },
   };
 
   useEffect(() => {
@@ -162,7 +156,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col flex-1 gap-8 sm:gap-12 md:gap-16">
-      <div className="grid grid-cols-3 bg-indigo-50 text-indigo-500 p-4 gap-4 rounded-lg">
+      <div className="grid grid-cols-3 bg-purple-50 text-purple-500 p-4 gap-4 rounded-lg">
         {Object.keys(statuses).map((status, statusIndex) => {
           return (
             <div key={statusIndex} className="p-4 flex flex-col gap-1 sm:gap-2">
@@ -171,7 +165,10 @@ export default function Dashboard() {
               </p>
               <p className={`text-base sm:text-lg truncate ${fugaz.className}`}>
                 {statuses[status]}
-                {status === "num_days" ? "🔥" : ""}
+                {status === "num_days" ? " 🙌" : ""}
+                {status === "average_mood" && statuses[status]>2 ? " 👍" : "" }
+                {status === "average_mood" && statuses[status]<2 ? " 😩" : "" }
+                {status === "average_mood" && statuses[status]===2 ? " 👎" : "" }
               </p>
             </div>
           );
@@ -186,6 +183,7 @@ export default function Dashboard() {
       </h4>
       <div className="flex items-stretch flex-wrap gap-4">
         {Object.keys(moods).map((mood, moodIndex) => {
+          const {emoji, bgColor} = moods[mood]
           return (
             <button
               onClick={() => {
@@ -194,11 +192,11 @@ export default function Dashboard() {
                 setShowNoteModal(true);
               }}
               key={moodIndex}
-              className={`p-4 px-5 rounded-2xl purpleShadow duration:200 bg-indigo-50 hover:bg-indigo-100 text-center flex flex-col gap-2 flex-1`}
+              className={`p-4 px-5 rounded-2xl purpleShadow duration:200 ${bgColor} hover:bg-purple-100 text-center flex flex-col gap-2 flex-1`}
             >
-              <p className="text-4xl sm:text-5xl md:text-6xl">{moods[mood]}</p>
+              <p className="text-4xl sm:text-5xl md:text-6xl">{emoji}</p>
               <p
-                className={`text-indigo-500 text-xs sm:text-sm md:text-base ${fugaz.className}`}
+                className={`text-stone-50 text-xs sm:text-sm md:text-base ${fugaz.className}`}
               >
                 {mood}
               </p>
@@ -207,13 +205,17 @@ export default function Dashboard() {
         })}
         <button
           onClick={() => {
+            handleSetPeriod(period);
             setPeriod(!period);
-            handleSetPeriod(period)
           }}
-          className={`p-4 px-5 rounded-2xl purpleShadow duration:200 bg-indigo-50 hover:bg-indigo-100 text-center`}
+          className={`p-4 px-5 rounded-2xl purpleShadow duration:200 bg-blue-400 hover:bg-purple-100 text-center`}
         >
           <p className="text-4xl sm:text-5xl md:text-6xl">❤️</p>
-          <p className={`text-indigo-500 text-xs sm:text-sm md:text-base ${fugaz.className}`}>{period ? 'Add Period' : "Remove Period"}</p>
+          <p
+            className={`text-stone-50 text-xs sm:text-sm md:text-base ${fugaz.className}`}
+          >
+            {hasPeriod ? "Remove Period" : "Add Period"}
+          </p>
         </button>
       </div>
       <Calendar completeData={data} onNoteClick={handleNoteClick} />
@@ -230,7 +232,7 @@ export default function Dashboard() {
       )}
       {/* display note when user clicks the note emoji */}
       {selectedNote && isNoteVisible && (
-        <div className="relative flex flex-col bg-indigo-50 text-indigo-500 p-4 gap-4 rounded-lg">
+        <div className="relative flex flex-col bg-purple-50 text-purple-500 p-4 gap-4 rounded-lg">
           <p>{selectedNote}</p>
           <div className="flex justify-end mt-auto">
             <Button clickHandler={toggleNoteVisibility} text="Close" dark />

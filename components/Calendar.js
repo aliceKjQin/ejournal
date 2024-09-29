@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { gradients, baseRating } from "@/utils";
+import { gradients, baseRating, colorCombo } from "@/utils";
 import { Fugaz_One, Montaga } from "next/font/google";
 
 const fugaz = Fugaz_One({ subsets: ["latin"], weight: ["400"] });
@@ -46,7 +46,6 @@ export default function Calendar(props) {
 
   const data =
     completeData?.[selectedYear]?.[numericMonth] || (demo ? baseRating : {});
-  console.log(data);
 
   function handleIncrementAndDecrementMonth(val) {
     // val +1 -1
@@ -83,7 +82,7 @@ export default function Calendar(props) {
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-5 gap-4">
         <button
-          className="mr-auto text-indigo-400 text-lg sm:text-xl duration-200 hover:opacity-60"
+          className="mr-auto text-purple-400 text-lg sm:text-xl duration-200 hover:opacity-60"
           onClick={() => handleIncrementAndDecrementMonth(-1)}
         >
           <i className="fa-solid fa-circle-chevron-left"></i>
@@ -94,7 +93,7 @@ export default function Calendar(props) {
           {selectedMonth}, {selectedYear}
         </p>
         <button
-          className="ml-auto text-indigo-400 text-lg sm:text-xl duration-200 hover:opacity-60"
+          className="ml-auto text-purple-400 text-lg sm:text-xl duration-200 hover:opacity-60"
           onClick={() => handleIncrementAndDecrementMonth(1)}
         >
           <i class="fa-solid fa-circle-chevron-right"></i>
@@ -124,29 +123,33 @@ export default function Calendar(props) {
                   return <div className="bg-white" key={dayOfWeekIndex}></div>;
                 }
 
-                // Fetch mood and note data, check for demo fallback
+                // Fetch mood and note data
                 let dayData = data[dayIndex] || {};
                 let color = dayData.mood
-                  ? gradients.indigo[dayData.mood]
+                  ? gradients.colorCombo[dayData.mood-1]
                   : "white";
                 let hasNote = dayData.note ? true : false;
                 let hasPeriod = dayData.period ? true : false;
-
+                console.log('mood ' + dayData.mood)
                 return (
                   <div
                     style={{ background: color }}
                     key={dayOfWeekIndex}
                     className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg ${
-                      isToday ? "border-indigo-400" : "border-indigo-100"
-                    } ${color === "white" ? "text-indigo-400" : "text-white"}`}
+                      isToday ? "border-purple-400" : "border-purple-100"
+                    } ${color === "white" ? "text-purple-400" : "text-white"}`}
                   >
                     <p>{dayIndex}</p>
                     {hasNote && (
                       <span
                         role="img"
                         aria-label="note"
-                        onClick={() => onNoteClick(dayData.note)}
-                        className="cursor-pointer"
+                        onClick={() => {
+                          if (!demo) {
+                            onNoteClick(dayData.note)
+                          }
+                        }}
+                        className={demo ? "" : "cursor-pointer"} // Remove cursor-pointer if in demo view 
                       >
                         📝
                       </span>
