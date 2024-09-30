@@ -44,7 +44,7 @@ export default function Login() {
           setErrorMessage("Invalid email format.");
           break;
         default:
-          setErrorMessage("Failed to authenticate. Please try again.");
+          setErrorMessage("Failed to authenticate. Please try again. OR, register first if you don't have an account yet.");
       }
     } finally {
       setAuthenticating(false);

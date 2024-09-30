@@ -41,9 +41,15 @@ export default function Dashboard() {
         }
       }
     }
+    // Avoid division by zero and return 0 if there are no mood entries
+    const average_mood =
+      total_number_of_days > 0
+        ? (sum_moods / total_number_of_days).toFixed(1)
+        : "0";
+
     return {
       num_days: total_number_of_days,
-      average_mood: (sum_moods / total_number_of_days).toFixed(1),
+      average_mood: average_mood,
     };
   }
 
@@ -165,12 +171,10 @@ export default function Dashboard() {
               </p>
               <p className={`text-base sm:text-lg truncate ${fugaz.className}`}>
                 {statuses[status]}
-                {status === "num_days" ? " 🙌" : ""}
+                {status === "num_days" && statuses[status] !== 0 ? " 🙌" : ""}
                 {status === "average_mood" && statuses[status] > 2 ? " 👍" : ""}
                 {status === "average_mood" && statuses[status] < 2 ? " 😩" : ""}
-                {status === "average_mood" && statuses[status] === 2
-                  ? " 👎"
-                  : ""}
+                {status === "average_mood" && statuses[status] === 2 ? " 👎": ""}
               </p>
             </div>
           );
@@ -242,7 +246,6 @@ export default function Dashboard() {
       )}
 
       <Calendar completeData={data} onNoteClick={handleNoteClick} />
-
     </div>
   );
 }
