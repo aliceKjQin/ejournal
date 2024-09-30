@@ -1,4 +1,4 @@
-import { Fugaz_One, Inter, Open_Sans } from "next/font/google";
+import { Fugaz_One, Open_Sans } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { AuthProvider } from "@/context/AuthContext";

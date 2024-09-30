@@ -15,11 +15,11 @@ export default function NoteModal({ onSave, onClose }) {
 
   return (
     <div className="relative flex flex-col bg-purple-50 text-purple-500 p-4 gap-4 rounded-lg">
-      <h2 className={`${fugaz.className}`}>✏️ Add a Note</h2>
+      <h2 className={`${fugaz.className}`}>✏️ Add an Optional Note </h2>
       <textarea
         value={noteInputValue}
         onChange={(e) => setNoteInputValue(e.target.value)}
-        placeholder="Type your note here..."
+        placeholder="Type your note here... or leave it empty to save"
         className="bg-purple-50"
       />
       <div className="flex gap-4 mt-auto max-w-[400px]">

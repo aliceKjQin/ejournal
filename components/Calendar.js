@@ -126,39 +126,43 @@ export default function Calendar(props) {
                 // Fetch mood and note data
                 let dayData = data[dayIndex] || {};
                 let color = dayData.mood
-                  ? gradients.colorCombo[dayData.mood-1]
+                  ? gradients.colorCombo[dayData.mood - 1]
                   : "white";
                 let hasNote = dayData.note ? true : false;
                 let hasPeriod = dayData.period ? true : false;
-                console.log('mood ' + dayData.mood)
+                console.log("mood " + dayData.mood);
                 return (
                   <div
-                    style={{ background: color }}
+                    style={{ background: color, minHeight: "60px" }}
                     key={dayOfWeekIndex}
                     className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg ${
-                      isToday ? "border-purple-400" : "border-purple-100"
+                      isToday
+                        ? "border-yellow-400 border-dashed border-2"
+                        : "border-purple-100"
                     } ${color === "white" ? "text-purple-400" : "text-white"}`}
                   >
                     <p>{dayIndex}</p>
-                    {hasNote && (
-                      <span
-                        role="img"
-                        aria-label="note"
-                        onClick={() => {
-                          if (!demo) {
-                            onNoteClick(dayData.note)
-                          }
-                        }}
-                        className={demo ? "" : "cursor-pointer"} // Remove cursor-pointer if in demo view 
-                      >
-                        📝
-                      </span>
-                    )}
-                    {hasPeriod && (
-                      <span role="img" aria-label="period">
-                        ❤️
-                      </span>
-                    )}
+                    <div className="flex flex-col sm:flex-row gap-1 items-center" >
+                      {hasNote && (
+                        <span
+                          role="img"
+                          aria-label="note"
+                          onClick={() => {
+                            if (!demo) {
+                              onNoteClick(dayData.note);
+                            }
+                          }}
+                          className={demo ? "" : "cursor-pointer"} // Remove cursor-pointer if in demo view
+                        >
+                          📝
+                        </span>
+                      )}
+                      {hasPeriod && (
+                        <span role="img" aria-label="period">
+                          ❤️
+                        </span>
+                      )}
+                    </div>
                   </div>
                 );
               })}
