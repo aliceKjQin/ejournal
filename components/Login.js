@@ -61,13 +61,13 @@ export default function Login() {
       <input
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-full max-w-[400px] mx-auto px-3 duration-200 hover:border-purple-400 focus:border-purple-400 py-2 sm:py-3 border border-solid border-purple-300 rounded-full outline-none"
+        className="w-full max-w-[400px] mx-auto px-3 duration-200 hover:border-purple-400 focus:border-purple-400 py-2 sm:py-3 border border-solid border-purple-300 rounded-full outline-none text-black"
         placeholder="Email"
       />
       <input
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="w-full max-w-[400px] mx-auto px-3 duration-200 hover:border-purple-400 focus:border-purple-400 py-2 sm:py-3 border border-solid border-purple-300 rounded-full outline-none"
+        className="w-full max-w-[400px] mx-auto px-3 duration-200 hover:border-purple-400 focus:border-purple-400 py-2 sm:py-3 border border-solid border-purple-300 rounded-full outline-none text-black"
         placeholder="Passsword"
         type="password"
       />
@@ -77,7 +77,7 @@ export default function Login() {
       )}
       {/* Submit button */}
       <div className="max-w-[400px] w-full mx-auto">
-        <Button clickHandler={handleSubmit} text={authenticating ? "submitting" : "submit"} full />
+        <Button clickHandler={handleSubmit} text={authenticating ? "submitting" : "submit"} full dark />
       </div>
       {/* eslint-disable-next-line react/no-unescaped-entities */}
       <p className="text-center">

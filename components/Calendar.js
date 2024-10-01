@@ -22,13 +22,13 @@ const months = {
 };
 const now = new Date();
 const dayList = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
 ];
 
 export default function Calendar(props) {
@@ -79,6 +79,7 @@ export default function Calendar(props) {
   const numRows = Math.floor(daysToDisplay / 7) + (daysToDisplay % 7 ? 1 : 0);
 
   return (
+    //  backward and forward bar
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-5 gap-4">
         <button
@@ -99,7 +100,12 @@ export default function Calendar(props) {
           <i class="fa-solid fa-circle-chevron-right"></i>
         </button>
       </div>
-      <div className="flex flex-col overflow-hidden gap-1 py-4 sm:py-6 md:py-10">
+      {/* display day of week row (Sun-Sat) */}
+      <div className="sm:py-6 md:py-10 grid grid-cols-7">
+        {dayList.map((dayOfWeek) => <span className={`text-center textGradient ${fugaz.className}`}>{dayOfWeek}</span>)}
+      </div>
+      {/* calendar */}
+      <div className="flex flex-col overflow-hidden gap-1 py-4 ">
         {[...Array(numRows).keys()].map((row, rowIndex) => {
           return (
             <div key={rowIndex} className="grid grid-cols-7">
@@ -120,14 +126,14 @@ export default function Calendar(props) {
                 let isToday = dayIndex === now.getDate();
 
                 if (!dayDisplay) {
-                  return <div className="bg-white" key={dayOfWeekIndex}></div>;
+                  return <div className="bg-white dark:bg-zinc-700" key={dayOfWeekIndex}></div>;
                 }
 
                 // Fetch mood and note data
                 let dayData = data[dayIndex] || {};
                 let color = dayData.mood
-                  ? gradients.colorCombo[dayData.mood - 1]
-                  : "white";
+                  ? gradients.colorCombo[dayData.mood - 1] // use mood color if available
+                  : "bg-white dark:bg-zinc-700"; // default bg cell for no mood
                 let hasNote = dayData.note ? true : false;
                 let hasPeriod = dayData.period ? true : false;
                 console.log("mood " + dayData.mood);
@@ -139,7 +145,7 @@ export default function Calendar(props) {
                       isToday
                         ? "border-yellow-400 border-dashed border-2"
                         : "border-purple-100"
-                    } ${color === "white" ? "text-purple-400" : "text-white"}`}
+                    } ${dayData.mood ? "text-white" : "text-purple-400 dark:text-white"} ${!dayData.mood ? color : ""}`} 
                   >
                     <p>{dayIndex}</p>
                     <div className="flex flex-col sm:flex-row gap-1 items-center" >

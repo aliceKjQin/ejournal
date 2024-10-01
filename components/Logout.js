@@ -21,5 +21,5 @@ export default function Logout() {
         </Link>
     )
   }
-  return <Button text="Logout" clickHandler={logout} />;
+  return <Button text="Logout" clickHandler={logout} dark />;
 }
