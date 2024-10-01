@@ -39,7 +39,7 @@ export default function Calendar(props) {
   const monthsArr = Object.keys(months);
   console.log(monthsArr);
   const [selectedMonth, setSelectedMonth] = useState(
-    Object.keys(months)[currentMonth]
+    monthsArr[currentMonth]
   );
   const numericMonth = monthsArr.indexOf(selectedMonth);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
@@ -63,6 +63,11 @@ export default function Calendar(props) {
     }
   }
 
+  const handleToday = () => {
+    setSelectedMonth(monthsArr[currentMonth])
+    setSelectedYear(now.getFullYear())
+  }
+
   const monthNow = new Date(
     selectedYear,
     Object.keys(months).indexOf(selectedMonth),
@@ -77,7 +82,6 @@ export default function Calendar(props) {
 
   const daysToDisplay = firstDayOfMonth + daysInMonth;
   const numRows = Math.floor(daysToDisplay / 7) + (daysToDisplay % 7 ? 1 : 0);
-
   return (
     //  backward and forward bar
     <div className="flex flex-col gap-2">
@@ -88,11 +92,19 @@ export default function Calendar(props) {
         >
           <i className="fa-solid fa-circle-chevron-left"></i>
         </button>
-        <p
-          className={`text-center textGradient col-span-3 whitespace-nowrap ${fugaz.className}`}
-        >
-          {selectedMonth}, {selectedYear}
-        </p>
+        {/* div containing the month, year, and "Today" button */}
+        <div className="col-span-3 flex justify-center items-center">
+          <p className={`text-center textGradient whitespace-nowrap ${fugaz.className}`}>
+            {selectedMonth}, {selectedYear}
+          </p>
+          <button
+            className={`ml-4 bg-purple-400 text-white px-3  rounded-lg duration-200 hover:opacity-60 ${fugaz.className}`}
+            onClick={handleToday}
+          >
+            Today
+          </button>
+      </div>
+      
         <button
           className="ml-auto text-purple-400 text-lg sm:text-xl duration-200 hover:opacity-60"
           onClick={() => handleIncrementAndDecrementMonth(1)}
@@ -124,7 +136,9 @@ export default function Calendar(props) {
                     : true;
 
                 let isToday = dayIndex === now.getDate();
-
+                let isCurrentMonth = selectedMonth === monthsArr[currentMonth];
+                let isCurrentYear = selectedYear === now.getFullYear();
+                
                 if (!dayDisplay) {
                   return <div className="bg-white dark:bg-zinc-700" key={dayOfWeekIndex}></div>;
                 }
@@ -142,7 +156,7 @@ export default function Calendar(props) {
                     style={{ background: dayData.mood ? color : undefined, minHeight: "60px" }}
                     key={dayOfWeekIndex}
                     className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg ${
-                      isToday
+                      isToday && isCurrentMonth && isCurrentYear
                         ? "border-yellow-400 border-dashed border-2"
                         : "border-purple-100"
                     } ${dayData.mood ? "text-white" : "text-purple-400 dark:text-white"} ${!dayData.mood ? color : ""}`} 
