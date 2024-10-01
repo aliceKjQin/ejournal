@@ -139,7 +139,7 @@ export default function Calendar(props) {
                 console.log("mood " + dayData.mood);
                 return (
                   <div
-                    style={{ background: color, minHeight: "60px" }}
+                    style={{ background: dayData.mood ? color : undefined, minHeight: "60px" }}
                     key={dayOfWeekIndex}
                     className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg ${
                       isToday

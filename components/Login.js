@@ -12,17 +12,20 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isRegister, setIsRegister] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("")
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const { signup, login } = useAuth();
 
   async function handleSubmit() {
     if (!email || !password || password.length < 6) {
-      setErrorMessage("Please provide valid email and password (min 6 characters).")
+      setErrorMessage(
+        "Please provide valid email and password (min 6 characters)."
+      );
       return;
     }
     setAuthenticating(true);
-    setErrorMessage("") // Clear previous error message if any
+    setErrorMessage(""); // Clear previous error message if any
     try {
       if (isRegister) {
         console.log("Signing up a new user");
@@ -44,7 +47,9 @@ export default function Login() {
           setErrorMessage("Invalid email format.");
           break;
         default:
-          setErrorMessage("Failed to authenticate. Please try again. OR, register first if you don't have an account yet.");
+          setErrorMessage(
+            "Failed to authenticate. Please try again. OR, register first if you don't have an account yet."
+          );
       }
     } finally {
       setAuthenticating(false);
@@ -64,28 +69,42 @@ export default function Login() {
         className="w-full max-w-[400px] mx-auto px-3 duration-200 hover:border-purple-400 focus:border-purple-400 py-2 sm:py-3 border border-solid border-purple-300 rounded-full outline-none text-black"
         placeholder="Email"
       />
-      <input
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full max-w-[400px] mx-auto px-3 duration-200 hover:border-purple-400 focus:border-purple-400 py-2 sm:py-3 border border-solid border-purple-300 rounded-full outline-none text-black"
-        placeholder="Passsword"
-        type="password"
-      />
+      {/* password input field */}
+      <div className="relative w-full max-w-[400px] mx-auto">
+        <input
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full px-3 duration-200 hover:border-purple-400 focus:border-purple-400 py-2 sm:py-3 border border-solid border-purple-300 rounded-full outline-none text-black"
+          placeholder="Password"
+          type={showPassword ? "text" : "password"}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-400"
+        >
+          {showPassword ? "Hide" : "Show"}
+        </button>
+      </div>
+
       {/* Show error message */}
-      {errorMessage && (
-        <p className="text-red-500 text-sm">{errorMessage}</p>
-      )}
+      {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
       {/* Submit button */}
       <div className="max-w-[400px] w-full mx-auto">
-        <Button clickHandler={handleSubmit} text={authenticating ? "submitting" : "submit"} full dark />
+        <Button
+          clickHandler={handleSubmit}
+          text={authenticating ? "submitting" : "submit"}
+          full
+          dark
+        />
       </div>
       {/* eslint-disable-next-line react/no-unescaped-entities */}
       <p className="text-center">
         {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
         <button
           onClick={() => {
-            setIsRegister(!isRegister)
-            setErrorMessage("") // Clear error message when switching mode
+            setIsRegister(!isRegister);
+            setErrorMessage(""); // Clear error message when switching mode
           }}
           className="text-purple-400"
         >
