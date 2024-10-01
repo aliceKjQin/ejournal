@@ -102,7 +102,7 @@ export default function Calendar(props) {
       </div>
       {/* display day of week row (Sun-Sat) */}
       <div className="sm:py-6 md:py-10 grid grid-cols-7">
-        {dayList.map((dayOfWeek) => <span className={`text-center textGradient ${fugaz.className}`}>{dayOfWeek}</span>)}
+        {dayList.map((dayOfWeek, dayOfWeekIndex) => <span key={dayOfWeekIndex} className={`text-center textGradient ${fugaz.className}`}>{dayOfWeek}</span>)}
       </div>
       {/* calendar */}
       <div className="flex flex-col overflow-hidden gap-1 py-4 ">
