@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { gradients, baseRating, colorCombo } from "@/utils";
-import { Fugaz_One, Montaga } from "next/font/google";
+import { demoData } from "@/utils";
+import { Roboto } from "next/font/google";
 
-const fugaz = Fugaz_One({ subsets: ["latin"], weight: ["400"] });
+const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
 const months = {
   January: "Jan",
@@ -20,32 +20,21 @@ const months = {
   November: "Nov",
   December: "Dec",
 };
-const now = new Date();
-const dayList = [
-  "Sun",
-  "Mon",
-  "Tue",
-  "Wed",
-  "Thu",
-  "Fri",
-  "Sat",
-];
+
+const dayList = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function Calendar(props) {
-  const { demo, completeData, handleSetMoodAndNote, onNoteClick } = props;
+  const { demo, completeData, handleSetMoodAndNote } = props;
 
   const now = new Date();
   const currentMonth = now.getMonth(); // numerical number for the month from 0 - 11
   const monthsArr = Object.keys(months);
   console.log(monthsArr);
-  const [selectedMonth, setSelectedMonth] = useState(
-    monthsArr[currentMonth]
-  );
+  const [selectedMonth, setSelectedMonth] = useState(monthsArr[currentMonth]);
   const numericMonth = monthsArr.indexOf(selectedMonth);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
-  const data =
-    completeData?.[selectedYear]?.[numericMonth] || (demo ? baseRating : {});
+  const data = completeData?.[selectedYear]?.[numericMonth] || (demo ? demoData : {});
 
   function handleIncrementAndDecrementMonth(val) {
     // val +1 -1
@@ -57,16 +46,16 @@ export default function Calendar(props) {
     } else if (numericMonth + val > 11) {
       // set month numeric value = 0 which is Jan and increment the year
       setSelectedMonth(monthsArr[0]);
-      setSelectedYear((curr) => curr + 1); // why not just curr + 1
+      setSelectedYear((curr) => curr + 1); 
     } else {
       setSelectedMonth(monthsArr[numericMonth + val]);
     }
   }
 
   const handleToday = () => {
-    setSelectedMonth(monthsArr[currentMonth])
-    setSelectedYear(now.getFullYear())
-  }
+    setSelectedMonth(monthsArr[currentMonth]);
+    setSelectedYear(now.getFullYear());
+  };
 
   const monthNow = new Date(
     selectedYear,
@@ -94,17 +83,19 @@ export default function Calendar(props) {
         </button>
         {/* div containing the month, year, and "Today" button */}
         <div className="col-span-3 flex justify-center items-center">
-          <p className={`text-center textGradient whitespace-nowrap ${fugaz.className}`}>
+          <p
+            className={`text-center textGradient whitespace-nowrap ${roboto.className}`}
+          >
             {selectedMonth}, {selectedYear}
           </p>
           <button
-            className={`ml-4 bg-purple-400 text-white px-3  rounded-lg duration-200 hover:opacity-60 ${fugaz.className}`}
+            className={`ml-4 bg-purple-400 text-white px-3  rounded-lg duration-200 hover:opacity-60 ${roboto.className}`}
             onClick={handleToday}
           >
             Today
           </button>
-      </div>
-      
+        </div>
+
         <button
           className="ml-auto text-purple-400 text-lg sm:text-xl duration-200 hover:opacity-60"
           onClick={() => handleIncrementAndDecrementMonth(1)}
@@ -114,7 +105,14 @@ export default function Calendar(props) {
       </div>
       {/* display day of week row (Sun-Sat) */}
       <div className="sm:py-6 md:py-10 grid grid-cols-7">
-        {dayList.map((dayOfWeek, dayOfWeekIndex) => <span key={dayOfWeekIndex} className={`text-center textGradient ${fugaz.className}`}>{dayOfWeek}</span>)}
+        {dayList.map((dayOfWeek, dayOfWeekIndex) => (
+          <span
+            key={dayOfWeekIndex}
+            className={`text-center textGradient ${roboto.className}`}
+          >
+            {dayOfWeek}
+          </span>
+        ))}
       </div>
       {/* calendar */}
       <div className="flex flex-col overflow-hidden gap-1 py-4 ">
@@ -138,51 +136,30 @@ export default function Calendar(props) {
                 let isToday = dayIndex === now.getDate();
                 let isCurrentMonth = selectedMonth === monthsArr[currentMonth];
                 let isCurrentYear = selectedYear === now.getFullYear();
-                
+
                 if (!dayDisplay) {
-                  return <div className="bg-white dark:bg-zinc-700" key={dayOfWeekIndex}></div>;
+                  return (
+                    <div
+                      className="bg-white dark:bg-zinc-700"
+                      key={dayOfWeekIndex}
+                    ></div>
+                  );
                 }
 
-                // Fetch mood and note data
-                let dayData = data[dayIndex] || {};
-                let color = dayData.mood
-                  ? gradients.colorCombo[dayData.mood - 1] // use mood color if available
-                  : "bg-white dark:bg-zinc-700"; // default bg cell for no mood
-                let hasNote = dayData.note ? true : false;
-                let hasPeriod = dayData.period ? true : false;
-                console.log("mood " + dayData.mood);
                 return (
                   <div
-                    style={{ background: dayData.mood ? color : undefined, minHeight: "60px" }}
                     key={dayOfWeekIndex}
                     className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg ${
-                      isToday && isCurrentMonth && isCurrentYear
+                      isToday && isCurrentMonth && isCurrentYear && !demo
                         ? "border-yellow-400 border-dashed border-2"
                         : "border-purple-100"
-                    } ${dayData.mood ? "text-white" : "text-purple-400 dark:text-white"} ${!dayData.mood ? color : ""}`} 
+                    } ${
+                      data[dayIndex]
+                        ? "text-white bg-purple-400"
+                        : "text-purple-400 dark:text-white bg-white dark:bg-zinc-700"
+                    } `}
                   >
                     <p>{dayIndex}</p>
-                    <div className="flex flex-col sm:flex-row gap-1 items-center" >
-                      {hasNote && (
-                        <span
-                          role="img"
-                          aria-label="note"
-                          onClick={() => {
-                            if (!demo) {
-                              onNoteClick(dayData.note);
-                            }
-                          }}
-                          className={demo ? "" : "cursor-pointer"} // Remove cursor-pointer if in demo view
-                        >
-                          📝
-                        </span>
-                      )}
-                      {hasPeriod && (
-                        <span role="img" aria-label="period">
-                          ❤️
-                        </span>
-                      )}
-                    </div>
                   </div>
                 );
               })}
