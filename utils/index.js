@@ -1,63 +1,35 @@
-export const gradients = {
-  indigo: [
-    "#dcd6ff",
-    "#b8adff",
-    "#9285ff",
-    "#7766ff",
-    "#4833ff",
-    "#3525db",
-    "#261ab1",
-    "#1a1093",
-    "#10097a",
-  ],
-  green: [
-    "#dcfdc3",
-    "#affc9d",
-    "#7cf86c",
-    "#4bf246",
-    "#0cea1c",
-    "#0dc928",
-    "#0ca82f",
-    "#038731",
-    "#047031",
-  ],
-  blue: [
-    "#ccfffa",
-    "#9afefe",
-    "#66f1fc",
-    "#41dffa",
-    "#07c2f7",
-    "#0497d4",
-    "#0171b1",
-    "#02518e",
-    "#003a76",
-  ],
-  yellow: [
-    "#fff8db",
-    "#fff0b8",
-    "#ffe495",
-    "#ffd97b",
-    "#ffc84f",
-    "#dba339",
-    "#b78127",
-    "#936118",
-    "#7a4b10",
-  ],
-  pink: [
-    "#ffd8f2",
-    "#ffb1ea",
-    "#ff8aea",
-    "#ff6df1",
-    "#ff3dfe",
-    "#cd2ddb",
-    "#9d1fb7",
-    "#731493",
-    "#540b7a",
-  ],
-  colorCombo: ["#a3a3a3", "#f87171", "#2dd4bf"],
+export const demoData = {
+  15: 2,
+  16: 4,
+  17: 1,
+  18: 3,
+  19: 5,
+  20: 2,
+  21: 4,
+  22: 1,
+  23: 3,
+  24: 5,
 };
 
-export const demoData = {
-  "15": 2, "16": 4, "17": 1, "18": 3, "19": 5,
-  "20": 2, "21": 4, "22": 1, "23": 3, "24": 5,
+// calculate all values related to subject progress
+export function calculateSubjectProgress(subject) {
+  const { targetHours, studyData } = subject;
+  let totalStudyDays = 0;
+  let totalStudyHours = 0;
+  let targetAchieved = false;
+
+  Object.values(studyData).forEach((year) => {
+    Object.values(year).forEach((month) => {
+      Object.values(month).forEach((hours) => {
+        totalStudyDays++;
+        totalStudyHours += hours;
+      });
+    });
+  });
+
+  const progressPercentage =
+    targetHours > 0 ? (totalStudyHours / targetHours) * 100 : 0;
+  targetAchieved = targetHours > 0 && totalStudyHours >= targetHours;
+
+  return { progressPercentage, totalStudyDays, totalStudyHours };
 }

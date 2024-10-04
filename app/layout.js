@@ -1,21 +1,21 @@
+'use client'
 import { Open_Sans, Roboto } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import Head from "./head";
 import Logout from "@/components/Logout";
 import { ThemeProvider } from "@/context/ThemeContext";
 import ThemeToggle from "@/components/ThemeToggle";
+import SubjectDropdown from "@/components/SubjectDropdown";
+import { usePathname } from "next/navigation";
 
 const opensans = Open_Sans({ subsets: ["latin"] });
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
-export const metadata = {
-  title: "Stutra",
-  description: "Track your cycle and daily mood of the year!",
-};
-
 export default function RootLayout({ children }) {
+  const pathname = usePathname()
+
   const header = (
     <header className="p-4 sm:p-8 flex items-center justify-between gap-4">
       <Link href="/">
@@ -23,7 +23,8 @@ export default function RootLayout({ children }) {
           Stutra
         </h1>
       </Link>
-      <div className="flex gap-6">
+      {pathname !== '/' && <SubjectDropdown />}
+      <div className="flex gap-4">
         <ThemeToggle />
         <Logout />
       </div>
@@ -32,7 +33,7 @@ export default function RootLayout({ children }) {
   const footer = (
     <footer className="p-4 sm:p-8 grid place-items-center">
       <p className={`text-purple-400 ${roboto.className}`}>
-        Be kind to yourself 💋
+        Keep up with no one but yourself ✨
       </p>
     </footer>
   );

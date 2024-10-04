@@ -29,7 +29,6 @@ export default function Calendar(props) {
   const now = new Date();
   const currentMonth = now.getMonth(); // numerical number for the month from 0 - 11
   const monthsArr = Object.keys(months);
-  console.log(monthsArr);
   const [selectedMonth, setSelectedMonth] = useState(monthsArr[currentMonth]);
   const numericMonth = monthsArr.indexOf(selectedMonth);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());

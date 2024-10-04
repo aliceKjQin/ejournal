@@ -10,8 +10,8 @@ export default function CallToAction() {
   if (currentUser) {
     return (
       <div className="max-w-[600px] mx-auto w-full">
-        <Link href="/dashboard">
-          <Button dark full text="Go to dashboard" />
+        <Link href="/subjects">
+          <Button dark full text="View All Subjects" />
         </Link>
       </div>
     );

@@ -10,22 +10,37 @@ import Login from "./Login";
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 import { db } from "@/firebase";
 import ProgressBar from "./ProgressBar";
+import { useSearchParams } from "next/navigation";
+import { calculateSubjectProgress } from "@/utils";
 
 export default function Dashboard() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
   const [data, setData] = useState({});
   const [studyHours, setStudyHours] = useState(null);
   const [targetHours, setTargetHours] = useState(null); // target hours state from firebase
-  const [targetHoursInput, setTargetHoursInput] = useState(targetHours || "")
+  const [targetHoursInput, setTargetHoursInput] = useState(targetHours || "");
   const [errorMessage, setErrorMessage] = useState("");
   const [targetHourErrorMessage, setTargetHourErrorMessage] = useState("");
+  const searchParams = useSearchParams();
+  const subject = searchParams.get("subject");
 
   const now = new Date();
   const day = now.getDate();
   const month = now.getMonth();
   const year = now.getFullYear();
 
-  // count the stats to be displayed in the statuses
+  useEffect(() => {
+    if (!currentUser || !userDataObj || !subject) {
+      return;
+    }
+    const subjectData = userDataObj.subjects[subject];
+    if (subjectData) {
+      setData(subjectData.studyData);
+      setTargetHours(subjectData.targetHours); //set targetHours from userDataObj if available, thus main consistency across page refreshes.
+    }
+  }, [currentUser, userDataObj, subject]);
+
+  // count the stats
   function countValues() {
     let total_number_of_days = 0;
     let sum_hours = 0;
@@ -40,9 +55,9 @@ export default function Dashboard() {
         }
       }
     }
-
-    const complete_percentage = targetHours ? (sum_hours / targetHours) * 100 : "0"
-    targetAchieved = sum_hours >= targetHours && targetHours;
+    const complete_percentage =
+      targetHours > 0 ? (sum_hours / targetHours) * 100 : 0;
+    targetAchieved = targetHours > 0 && sum_hours >= targetHours;
 
     return {
       num_days: total_number_of_days,
@@ -59,6 +74,13 @@ export default function Dashboard() {
   // Calculate progress percentage
   const progressPercentage = statuses.complete_percentage;
 
+  // function to validate study hours input
+  const isValidStudyHours = (hours) => {
+    const numericValue = Number(hours);
+    const regex = /^\d+(\.\d{1})?$/; // Regex to match a number with at most one decimal place
+    return regex.test(hours) && numericValue > 0;
+  };
+
   // Function to save target hours
   const handleSetTargetHours = async (hours) => {
     if (!isValidStudyHours(hours)) {
@@ -70,25 +92,34 @@ export default function Dashboard() {
 
     const numericHours = Number(hours); // convert to number first, as all values from input fields are retrieved as strings
     setTargetHours(numericHours);
-    const newUserData = { ...userDataObj, targetHours: numericHours };
-    setUserDataObj(newUserData);
 
-    // update firebase
-    try {
-      const docRef = doc(db, "users", currentUser.uid);
-      await setDoc(docRef, { targetHours: numericHours }, { merge: true });
-      console.log("Target hours saved successfully!");
-      setTargetHourErrorMessage("");
-    } catch (err) {
-      console.log(`Failed to set target hours: ${err.message}`);
+    const newUserData = { ...userDataObj };
+    if (subject && newUserData.subjects[subject]) {
+      newUserData.subjects[subject].targetHours = numericHours;
+      setUserDataObj(newUserData);
+
+      // Update Firebase
+      try {
+        const docRef = doc(db, "users", currentUser.uid);
+        await setDoc(
+          docRef,
+          {
+            subjects: {
+              [subject]: {
+                targetHours: numericHours,
+              },
+            },
+          },
+          { merge: true }
+        );
+        console.log("Target hours saved successfully!");
+        setTargetHourErrorMessage("");
+      } catch (err) {
+        console.log(`Failed to set target hours: ${err.message}`);
+      }
+    } else {
+      console.log("Subject not found in user data.");
     }
-  };
-
-  // function to validate study hours input
-  const isValidStudyHours = (hours) => {
-    const numericValue = Number(hours);
-    const regex = /^\d+(\.\d{1})?$/; // Regex to match a number with at most one decimal place
-    return regex.test(hours) && numericValue > 0;
   };
 
   // function to save studyHours for the current calendar day
@@ -99,30 +130,48 @@ export default function Dashboard() {
       );
       return;
     }
-
     const numericStudyHours = Number(studyHours);
     try {
-      const newData = { ...userDataObj }; // create a copy of userDataObj
-      if (!newData?.[year]) {
-        newData[year] = {};
-      }
-      if (!newData?.[year]?.[month]) {
-        newData[year][month] = {};
+      const newUserDataObj = { ...userDataObj }; // create a copy of // Ensure the subjects structure is initialized
+      if (!newUserDataObj.subjects) {
+        newUserDataObj.subjects = {};
       }
 
-      newData[year][month][day] = numericStudyHours;
+      // Ensure the subject exists
+      if (!newUserDataObj.subjects[subject]) {
+        newUserDataObj.subjects[subject] = { studyData: {}, targetHours: 0 };
+      }
+
+      // Ensure the nested structure is initialized
+      if (!newUserDataObj.subjects[subject].studyData[year]) {
+        newUserDataObj.subjects[subject].studyData[year] = {};
+      }
+      if (!newUserDataObj.subjects[subject].studyData[year][month]) {
+        newUserDataObj.subjects[subject].studyData[year][month] = {};
+      }
+
+      // Set the study hours for the specific day
+      newUserDataObj.subjects[subject].studyData[year][month][day] =
+        numericStudyHours;
+
       // update the current state
-      setData(newData);
+      setData(newUserDataObj);
       // update the global state
-      setUserDataObj(newData);
+      setUserDataObj(newUserDataObj);
       // update firebase
       const docRef = doc(db, "users", currentUser.uid);
       const res = await setDoc(
         docRef,
         {
-          [year]: {
-            [month]: {
-              [day]: numericStudyHours,
+          subjects: {
+            [subject]: {
+              studyData: {
+                [year]: {
+                  [month]: {
+                    [day]: numericStudyHours,
+                  },
+                },
+              },
             },
           },
         },
@@ -136,18 +185,6 @@ export default function Dashboard() {
     }
   }
 
-  useEffect(() => {
-    if (!currentUser || !userDataObj) {
-      return;
-    }
-    setData(userDataObj);
-
-    // set targetHours from userDataObj if available, thus main consistency across page refreshes.
-    if (userDataObj.targetHours) {
-      setTargetHours(userDataObj.targetHours);
-    }
-  }, [currentUser, userDataObj]);
-
   if (loading) {
     return <Loading />;
   }
@@ -158,28 +195,15 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col flex-1 gap-8 sm:gap-12 md:gap-16">
-      {/* <div className="flex justify-between bg-purple-50 text-purple-500 p-4 gap-4 rounded-lg">
-        {Object.keys(statuses).map((status, statusIndex) => {
-          return (
-            <div key={statusIndex} className="p-4 flex flex-col gap-1 sm:gap-2">
-              <p className="font-medium capitalize text-xs sm:text-sm truncate">
-                {status.replaceAll("_", " ")}
-              </p>
-              <p
-                className={`text-base sm:text-lg truncate ${roboto.className}`}
-              >
-                {statuses[status]}
-                {status === "num_days" && statuses[status] !== 0 ? " 🙌" : ""}
-              </p>
-            </div>
-          );
-        })}
-      </div> */}
       <div className="flex flex-col mt-4">
         {/* num days tracked */}
-        <p className={`text-lg sm:text-xl mb-2 ${roboto.className}`}>
-          You have been studied for{" "}
+        <p
+          className={`text-lg sm:text-xl mb-2 text-center ${roboto.className}`}
+        >
+          You have been studied{" "}
+          <span className="textGradient uppercase">{subject}</span> for
           <span className={`textGradient ${roboto.className}`}>
+            {" "}
             {statuses.num_days}
           </span>{" "}
           days,{" "}
@@ -190,17 +214,19 @@ export default function Dashboard() {
         </p>
         {/* Target Hours Input */}
         <div className="p-4 flex flex-col gap-1 sm:gap-2">
-          <p
-            className={`text-lg sm:text-xl mb-2 textGradient ${roboto.className}`}
+          <h4
+            className={`text-lg sm:text-xl mb-2 textGradient text-center ${roboto.className}`}
           >
             Target Hours
-          </p>
+          </h4>
           <div className="relative">
             <input
               type="number"
               value={targetHoursInput}
               onChange={(e) => setTargetHoursInput(e.target.value)}
-              placeholder={targetHours ? `${targetHours}` : "Enter your target"}
+              placeholder={
+                targetHours > 0 ? `${targetHours}` : "Enter your target"
+              }
               className="w-full px-3 duration-200 hover:border-purple-400 focus:border-purple-400 py-2 sm:py-3 border border-solid border-purple-300 rounded-full outline-none text-black"
             />
             <button
@@ -212,20 +238,37 @@ export default function Dashboard() {
           </div>
 
           {targetHourErrorMessage && (
-            <p className="text-red-500 mt-2">{targetHourErrorMessage}</p>
+            <p className="text-red-500 mt-2 text-center">
+              {targetHourErrorMessage}
+            </p>
           )}
         </div>
 
         {/* Progress Bar */}
         <div className="my-4">
           <h4
-            className={`text-lg sm:text-xl mb-2 textGradient ${roboto.className}`}
+            className={`text-lg sm:text-xl mb-2 textGradient text-center ${roboto.className}`}
           >
-            Study Progress
+            Progress
           </h4>
-          <ProgressBar progressPercentage={progressPercentage} />
+          {targetHours > 0 ? (
+            <>
+              <ProgressBar progressPercentage={progressPercentage} />
+              <p className="text-center mt-2">
+                {progressPercentage.toFixed(0)}% complete
+              </p>
+            </>
+          ) : (
+            <>
+              <ProgressBar progressPercentage={progressPercentage} />
+              <p className="text-center mt-2">
+                No target hours set. Please set a target to track progress.
+              </p>
+            </>
+          )}
+
           {statuses.targetAchieved && (
-            <p className="text-green-600 mt-2">
+            <p className="text-green-600 mt-2 text-center">
               🥳 Congrats! You hit the target!
             </p>
           )}
