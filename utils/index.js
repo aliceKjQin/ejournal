@@ -12,24 +12,24 @@ export const demoData = {
 };
 
 // calculate all values related to subject progress
-export function calculateSubjectProgress(subject) {
-  const { targetHours, studyData } = subject;
-  let totalStudyDays = 0;
-  let totalStudyHours = 0;
-  let targetAchieved = false;
+// export function calculateSubjectProgress(subject) {
+//   const { targetHours, studyData } = subject;
+//   let totalStudyDays = 0;
+//   let totalStudyHours = 0;
+//   let targetAchieved = false;
 
-  Object.values(studyData).forEach((year) => {
-    Object.values(year).forEach((month) => {
-      Object.values(month).forEach((hours) => {
-        totalStudyDays++;
-        totalStudyHours += hours;
-      });
-    });
-  });
+//   Object.values(studyData).forEach((year) => {
+//     Object.values(year).forEach((month) => {
+//       Object.values(month).forEach((hours) => {
+//         totalStudyDays++;
+//         totalStudyHours += hours;
+//       });
+//     });
+//   });
 
-  const progressPercentage =
-    targetHours > 0 ? (totalStudyHours / targetHours) * 100 : 0;
-  targetAchieved = targetHours > 0 && totalStudyHours >= targetHours;
+//   const progressPercentage =
+//     targetHours > 0 ? (totalStudyHours / targetHours) * 100 : 0;
+//   targetAchieved = targetHours > 0 && totalStudyHours >= targetHours;
 
-  return { progressPercentage, totalStudyDays, totalStudyHours };
-}
+//   return { progressPercentage, totalStudyDays, totalStudyHours };
+// }

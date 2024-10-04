@@ -5,16 +5,20 @@ import Button from "./Button";
 import { useAuth } from "@/context/AuthContext";
 import { doc, setDoc, updateDoc, deleteField } from "firebase/firestore";
 import { db } from "@/firebase";
+import { useSubjects } from "@/app/hooks/useSubjects";
+import { usePathname } from "next/navigation";
 
 export default function SubjectDropdown() {
-  const { currentUser, userDataObj, setUserDataObj } = useAuth();
-  const [subjects, setSubjects] = useState([]);
+  const { currentUser } = useAuth();
   const [newSubject, setNewSubject] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
+  const pathname = usePathname()
   const dropdownRef = useRef(null); // Create a ref for the dropdown
   // hide dropdown when click outside the dropdown div
+  const { subjects, addSubject, deleteSubject, selectSubject } = useSubjects();
+  
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -28,12 +32,6 @@ export default function SubjectDropdown() {
     };
   }, [dropdownRef]);
 
-  useEffect(() => {
-    if (userDataObj && userDataObj.subjects) {
-      setSubjects(Object.keys(userDataObj.subjects));
-    }
-  }, [userDataObj]);
-
   const handleShowDropdown = () => {
     setShowDropdown(!showDropdown);
   };
@@ -45,67 +43,32 @@ export default function SubjectDropdown() {
 
   const handleAddSubject = async () => {
     try {
-      if (subjects.includes(newSubject)) {
-        setErrorMessage("You already added this subject.");
-      }
-      if (newSubject.trim() && !subjects.includes(newSubject)) {
-        // Initialize subjects if it doesn't exist
-        const newSubjects = { ...userDataObj.subjects }; // created a shallow copy of the subjects object
-
-        // Add new subject with default structure
-        newSubjects[newSubject] = {
-          targetHours: 0, // Default value or prompt user to set
-          studyData: {}, // Empty studyData initially
-        };
-
-        setSubjects(Object.keys(newSubjects)); // Update local subjects state
-
-        const newUserData = { ...userDataObj, subjects: newSubjects };
-        setUserDataObj(newUserData);
-
-        // Update Firebase
-        const docRef = doc(db, "users", currentUser.uid);
-        await setDoc(docRef, { subjects: newSubjects }, { merge: true });
-        console.log("Added new subject successfully!");
-        setNewSubject("");
-        setErrorMessage("");
-      }
+      await addSubject(newSubject)
+      setNewSubject("");
+      setErrorMessage("");
     } catch (error) {
-      console.log(`Failed to save data: ${error.message}`);
+      setErrorMessage(error.message);
     }
-  };
+  }
 
   const handleDeleteSubject = async (subject) => {
     try {
-      // Remove the subject from the local state
-      const updatedSubjects = subjects.filter((sub) => sub !== subject);
-      setSubjects(updatedSubjects);
-
-      // Create a new user data object without the deleted subject
-      const newUserData = { ...userDataObj };
-      delete newUserData.subjects[subject];
-
-      // Update the global state
-      setUserDataObj(newUserData);
-
-      // Update Firebase to remove the subject
-      const docRef = doc(db, "users", currentUser.uid);
-      await updateDoc(docRef, {
-        [`subjects.${subject}`]: deleteField(),
-      });
-
-      console.log(`Subject ${subject} deleted successfully!`);
+      await deleteSubject(subject);
     } catch (error) {
       console.error(`Failed to delete subject: ${error.message}`);
     }
   };
 
   const handleSelectSubject = (subject) => {
-    router.push(`/dashboard?subject=${encodeURIComponent(subject)}`);
+    selectSubject(subject)
   };
 
   if (!currentUser) {
     return;
+  }
+
+  if (pathname == '/dashboard') {
+    return
   }
 
   return (
@@ -140,7 +103,7 @@ export default function SubjectDropdown() {
             <input
               type="text"
               value={newSubject}
-              onChange={(e) => setNewSubject(e.target.value)}
+              onChange={(e) => setNewSubject(e.target.value.trim().toLowerCase())}
               placeholder="New Subject"
               className="border rounded px-2 py-1 text-black"
             />

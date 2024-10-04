@@ -11,7 +11,8 @@ const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 import { db } from "@/firebase";
 import ProgressBar from "./ProgressBar";
 import { useSearchParams } from "next/navigation";
-import { calculateSubjectProgress } from "@/utils";
+import SubjectsView from "./SubjectsView";
+
 
 export default function Dashboard() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();

@@ -6,19 +6,14 @@ import Login from "./Login";
 import ProgressBar from "./ProgressBar";
 import { calculateSubjectProgress } from "@/utils";
 import { Roboto } from "next/font/google";
+import { useSubjects } from "@/app/hooks/useSubjects";
+import Button from "./Button";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
-
 export default function SubjectsView() {
-  const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
-  const [subjects, setSubjects] = useState([]);
-  // ensure component always has the most up-to-date subjects list
-  useEffect(() => {
-    if (userDataObj && userDataObj.subjects) {
-      setSubjects(Object.keys(userDataObj.subjects));
-    }
-  }, [userDataObj]);
+  const { currentUser, userDataObj, loading } = useAuth();
+  const { subjects, subjectsProgress, deleteSubject, selectSubject } = useSubjects();
 
   if (loading) {
     return <Loading />;
@@ -29,12 +24,26 @@ export default function SubjectsView() {
   }
   return (
     <div className="flex flex-col gap-6 sm:gap-8">
-      {Object.entries(userDataObj.subjects).map(([subjectName, subjectData]) => (
+      {subjects.map((subjectName) => (
         <div key={subjectName} className="flex flex-col gap-2 sm:gap-4">
-          <h4 className={`text-lg sm:text-xl mb-1 textGradient uppercase ${roboto.className}`}>{subjectName}</h4>
-          <ProgressBar progressPercentage={calculateSubjectProgress(subjectData).progressPercentage} />
-          <p>Target Hours: {subjectData.targetHours}</p>
-          {/* Add more subject details as needed */}
+          <h4
+            onClick={() => selectSubject(subjectName)}
+            className={`text-lg sm:text-xl mb-1 textGradient uppercase ${roboto.className} cursor-pointer`}
+          >
+            {subjectName}
+          </h4>
+          <ProgressBar
+            progressPercentage={
+              subjectsProgress[subjectName]?.progressPercentage
+            }
+          />
+          <div className="flex justify-between">
+            <p>Target Hours: {userDataObj?.subjects[subjectName]?.targetHours}</p>
+            <Button
+              text="Delete"
+              clickHandler={() => deleteSubject(subjectName)}
+            />
+          </div>
         </div>
       ))}
     </div>

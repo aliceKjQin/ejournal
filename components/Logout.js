@@ -14,7 +14,7 @@ export default function Logout() {
     return null;
   }
 
-  if (pathname === '/') {
+  if (pathname === '/' || pathname === '/dashboard') {
     return (
         <Link href={'/subjects'}>
             <Button text='View All Subjects' />
