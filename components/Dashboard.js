@@ -1,7 +1,7 @@
 "use client";
 
 import { Roboto } from "next/font/google";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Calendar from "./Calendar";
 import { useAuth } from "@/context/AuthContext";
 import { doc, setDoc } from "firebase/firestore";
@@ -11,10 +11,9 @@ const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 import { db } from "@/firebase";
 import ProgressBar from "./ProgressBar";
 import { useSearchParams } from "next/navigation";
-import SubjectsView from "./SubjectsView";
 
 
-export default function Dashboard() {
+function DashboardContent() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
   const [data, setData] = useState({});
   const [studyHours, setStudyHours] = useState(null);
@@ -309,4 +308,12 @@ export default function Dashboard() {
       <Calendar completeData={data} />
     </div>
   );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
+  )
 }
