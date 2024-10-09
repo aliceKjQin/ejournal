@@ -37,11 +37,11 @@ export default function HomePage() {
           setTodayJournalData(null);
         });
     }
-  }, [user, todayDate, todayJournalData]);
+  }, [user, todayDate, getEntry]);
 
   const journalTypes = ["morning", "evening"];
 
-  if (loading) {
+  if (loading && user) {
     return <Loading />
   }
 

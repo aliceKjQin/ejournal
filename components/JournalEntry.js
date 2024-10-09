@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useJournal } from "@/hooks/useJournal";
 import { Roboto } from "next/font/google";
 import Loading from "./Loading";
+import { useAuth } from "@/contexts/AuthContext";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
@@ -29,6 +30,7 @@ export default function JournalEntry({
       },
     }
   );
+  const { user} = useAuth()
 
   const fields =
     type === "morning"
@@ -94,6 +96,10 @@ export default function JournalEntry({
     await saveEntry(date, type, dataToSave);
     setEditMode(false);
   };
+
+  if (loading && user) {
+    return <Loading />
+  }
 
   return (
     <div className="bg-white dark:bg-gray-100 shadow overflow-hidden sm:rounded-lg">

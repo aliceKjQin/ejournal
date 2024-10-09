@@ -108,7 +108,7 @@ export default function Calendar(props) {
           days 🗓️{" "}
         </p>
       ) : (
-        <p className={`text-center text-base mb-10 sm:mb-16 ${roboto.className}`}>You don't have any journal entries yet. Why not start one today and capture your thoughts? 💡</p>
+        <p className={`text-center text-base mb-10 sm:mb-16 ${roboto.className}`}>You don&apos;t have any journal entries yet. Why not start one today and capture your thoughts? 💡</p>
       )}
       <div className="grid grid-cols-5 gap-4">
         <button

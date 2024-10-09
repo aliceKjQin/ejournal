@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getJournalEntries,
@@ -30,24 +30,26 @@ export function useJournal() {
     }
   }, [user]);
 
-  // get the specified date entry by user
-  const getEntry = async (date) => {
-    try {
-      // fetch if the date entry is not already present in the entries object
-      if (!entries[date]) {
-        setLoading(true);
-        const entry = await getJournalEntry(user.uid, date);
-        setEntries((prev) => ({ ...prev, [date]: entry }));
+  // get the specified date entry by user; useCallback to memorize getEntry to avoid re-render
+  const getEntry = useCallback(
+    async (date) => {
+      try {
+        // fetch if the date entry is not already present in the entries object
+        if (!entries[date]) {
+          setLoading(true);
+          const entry = await getJournalEntry(user.uid, date);
+          setEntries((prev) => ({ ...prev, [date]: entry }));
+          setLoading(false);
+        }
+        return entries[date]; // If the date entry is already available in the local state (entries), no need to fetch it again from db. This saves network bandwidth and reduces latency, providing a faster response to the user.
+      } catch (error) {
+        console.error("Failed fetching date entry: ", error);
         setLoading(false);
+        return null;
       }
-      return entries[date]; // If the date entry is already available in the local state (entries), no need to fetch it again from db. This saves network bandwidth and reduces latency, providing a faster response to the user.
-
-    } catch (error) {
-      console.error("Failed fetching date entry: ", error);
-      setLoading(false);
-      return null;
-    }
-  };
+    },
+    [user, entries]
+  );
 
   // save a specified date entry per type
   const saveEntry = async (date, entryType, data) => {

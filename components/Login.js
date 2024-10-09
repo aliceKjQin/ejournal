@@ -5,7 +5,6 @@ import Button from "./Button";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import Loading from "./Loading";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
@@ -18,7 +17,7 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState(null);
   const router = useRouter();
 
-  const { signup, signin, loading } = useAuth();
+  const { signup, signin } = useAuth();
 
   async function handleSubmit() {
     setErrorMessage(null); // Clear previous error messages
@@ -45,10 +44,6 @@ export default function Login() {
     } finally {
       setAuthenticating(false); // Stop authenticating once done
     }
-  }
-  // return a spinner when loading state from AuthContext is true
-  if (loading) {
-    return <Loading />;
   }
 
   return (

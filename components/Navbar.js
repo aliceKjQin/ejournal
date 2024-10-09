@@ -4,12 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Roboto } from "next/font/google";
 import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
+import {useRouter} from "next/navigation";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
 
 export default function Navbar() {
   const { user, signout } = useAuth();
+  const router = useRouter()
 
   return (
     <nav className="bg-white dark:bg-zinc-700 shadow-sm">
@@ -34,7 +36,10 @@ export default function Navbar() {
                   Dashboard
                 </Link>
                 <button
-                  onClick={signout}
+                  onClick={() => {
+                    signout();
+                    router.push("/login");
+                  }}
                   className="textGradient font-bold"
                 >
                   Logout

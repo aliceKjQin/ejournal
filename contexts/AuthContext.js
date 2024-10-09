@@ -23,6 +23,7 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
         // Set the user to local context state
+        setLoading(true);
         setUser(user);
         if (!user) {
           console.log("No User Found");
