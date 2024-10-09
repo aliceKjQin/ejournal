@@ -1,54 +1,32 @@
-'use client'
-import { Open_Sans, Roboto } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Head from "./head";
-import Logout from "@/components/Logout";
-import { ThemeProvider } from "@/context/ThemeContext";
-import ThemeToggle from "@/components/ThemeToggle";
-import SubjectDropdown from "@/components/SubjectDropdown";
-import { usePathname } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 const opensans = Open_Sans({ subsets: ["latin"] });
-const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
+
+export const metadata = {
+  title: "Journal",
+  description: "Track your daily study hours toward your goal!",
+};
 
 export default function RootLayout({ children }) {
-  const pathname = usePathname()
-
-  const header = (
-    <header className="p-4 sm:p-8 flex items-center justify-between gap-4">
-      <Link href="/">
-        <h1 className={`text-base sm:text-lg textGradient ${roboto.className}`}>
-          Stutra
-        </h1>
-      </Link>
-      {pathname !== '/' && <SubjectDropdown />}
-      <div className="flex gap-4">
-        <ThemeToggle />
-        <Logout />
-      </div>
-    </header>
-  );
-  const footer = (
-    <footer className="p-4 sm:p-8 grid place-items-center">
-      <p className={`text-purple-400 ${roboto.className}`}>
-        Keep up with no one but yourself ✨
-      </p>
-    </footer>
-  );
-
   return (
     <html lang="en">
       <Head />
       <ThemeProvider>
         <AuthProvider>
           <body
-            className={`w-full max-w-[1000px] mx-auto text-sm sm:text-base min-h-screen flex flex-col  ${opensans.className} bg-white dark:bg-zinc-900 text-slate-800 dark:text-white`}
+            className={`w-full max-w-[1400px] mx-auto text-sm sm:text-base min-h-screen flex flex-col  ${opensans.className} bg-white dark:bg-zinc-900 text-slate-800 dark:text-white`}
           >
-            {header}
-            {children}
-            {footer}
+            <div className="min-h-screen bg-purple-50 dark:bg-zinc-900">
+              <Navbar />
+              <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                {children}
+              </main>
+            </div>
           </body>
         </AuthProvider>
       </ThemeProvider>

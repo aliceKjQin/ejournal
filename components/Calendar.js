@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { demoData } from "@/utils";
 import { Roboto } from "next/font/google";
+import { useJournal } from "@/hooks/useJournal";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import Loading from "./Loading";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
@@ -24,16 +27,42 @@ const months = {
 const dayList = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function Calendar(props) {
-  const { demo, completeData, handleSetMoodAndNote } = props;
+  const { demo, completeData } = props;
+  const { user } = useAuth();
+  const { loading, entries } = useJournal();
+  const router = useRouter();
 
   const now = new Date();
-  const currentMonth = now.getMonth(); // numerical number for the month from 0 - 11
+  const currentMonth = now.getMonth(); // numerical number for month from 0 - 11
   const monthsArr = Object.keys(months);
   const [selectedMonth, setSelectedMonth] = useState(monthsArr[currentMonth]);
   const numericMonth = monthsArr.indexOf(selectedMonth);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [daysHaveEntry, setDaysHaveEntry] = useState({});
 
-  const data = completeData?.[selectedYear]?.[numericMonth] || (demo ? demoData : {});
+  const monthNow = new Date(selectedYear, numericMonth, 1);
+  const firstDayOfMonth = monthNow.getDay(); // calculates which day of the week July 1st falls on (e.g., 0 for Sunday, 1 for Monday).
+  const daysInMonth = new Date(selectedYear, numericMonth + 1, 0).getDate();
+
+  const entryDatesArr = Object.keys(entries);
+  // Check if a day has entry in the selected month and year
+  useEffect(() => {
+    const checkMonthEntries = async () => {
+      const newDaysHaveEntry = {};
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${selectedYear}-${String(numericMonth + 1).padStart(
+          2,
+          "0"
+        )}-${String(day).padStart(2, "0")}`;
+        if (entryDatesArr.includes(dateStr)) {
+          newDaysHaveEntry[day] = { hasEntry: true, dateStr }; // Mark the day as having an entry
+        }
+      }
+      setDaysHaveEntry(newDaysHaveEntry);
+    };
+
+    checkMonthEntries();
+  }, [selectedMonth, selectedYear, user, entries]);
 
   function handleIncrementAndDecrementMonth(val) {
     // val +1 -1
@@ -45,34 +74,42 @@ export default function Calendar(props) {
     } else if (numericMonth + val > 11) {
       // set month numeric value = 0 which is Jan and increment the year
       setSelectedMonth(monthsArr[0]);
-      setSelectedYear((curr) => curr + 1); 
+      setSelectedYear((curr) => curr + 1);
     } else {
       setSelectedMonth(monthsArr[numericMonth + val]);
     }
   }
 
+  // function for today button
   const handleToday = () => {
     setSelectedMonth(monthsArr[currentMonth]);
     setSelectedYear(now.getFullYear());
   };
 
-  const monthNow = new Date(
-    selectedYear,
-    Object.keys(months).indexOf(selectedMonth),
-    1
-  ); // return first day of currently assigned month, which is July 1 of 2024
-  const firstDayOfMonth = monthNow.getDay(); // calculates which day of the week July 1st falls on (e.g., 0 for Sunday, 1 for Monday).
-  const daysInMonth = new Date(
-    selectedYear,
-    Object.keys(months).indexOf(selectedMonth) + 1,
-    0
-  ).getDate();
-
   const daysToDisplay = firstDayOfMonth + daysInMonth;
   const numRows = Math.floor(daysToDisplay / 7) + (daysToDisplay % 7 ? 1 : 0);
+
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     //  backward and forward bar
     <div className="flex flex-col gap-2">
+      {/* stats bar */}
+      {entryDatesArr.length > 0 ? (
+        <p
+          className={`text-center text-base mb-10 sm:mb-16 ${roboto.className}`}
+        >
+          You&apos;ve been journaling for{" "}
+          <span className="font-bold text-xl textGradient">
+            {entryDatesArr.length}
+          </span>{" "}
+          days 🗓️{" "}
+        </p>
+      ) : (
+        <p className={`text-center text-base mb-10 sm:mb-16 ${roboto.className}`}>You don't have any journal entries yet. Why not start one today and capture your thoughts? 💡</p>
+      )}
       <div className="grid grid-cols-5 gap-4">
         <button
           className="mr-auto text-purple-400 text-lg sm:text-xl duration-200 hover:opacity-60"
@@ -99,7 +136,7 @@ export default function Calendar(props) {
           className="ml-auto text-purple-400 text-lg sm:text-xl duration-200 hover:opacity-60"
           onClick={() => handleIncrementAndDecrementMonth(1)}
         >
-          <i class="fa-solid fa-circle-chevron-right"></i>
+          <i className="fa-solid fa-circle-chevron-right"></i>
         </button>
       </div>
       {/* display day of week row (Sun-Sat) */}
@@ -149,16 +186,30 @@ export default function Calendar(props) {
                   <div
                     key={dayOfWeekIndex}
                     className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg ${
-                      isToday && isCurrentMonth && isCurrentYear && !demo
+                      isToday && isCurrentMonth && isCurrentYear
                         ? "border-yellow-400 border-dashed border-2"
                         : "border-purple-100"
                     } ${
-                      data[dayIndex]
+                      daysHaveEntry[dayIndex]
                         ? "text-white bg-purple-400"
                         : "text-purple-400 dark:text-white bg-white dark:bg-zinc-700"
                     } `}
                   >
                     <p>{dayIndex}</p>
+                    {daysHaveEntry[dayIndex]?.hasEntry && (
+                      <span
+                        role="img"
+                        aria-label="journal"
+                        className="cursor-pointer text-base"
+                        onClick={() => {
+                          router.push(
+                            `/dashboard/${daysHaveEntry[dayIndex].dateStr}`
+                          );
+                        }}
+                      >
+                        📓
+                      </span>
+                    )}
                   </div>
                 );
               })}

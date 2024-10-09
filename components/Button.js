@@ -1,4 +1,4 @@
-import { Fugaz_One, Roboto } from "next/font/google";
+import { Roboto } from "next/font/google";
 import React from "react";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });

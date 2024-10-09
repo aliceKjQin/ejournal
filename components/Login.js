@@ -3,7 +3,9 @@
 import { Roboto } from "next/font/google";
 import Button from "./Button";
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import Loading from "./Loading";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
@@ -12,48 +14,41 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isRegister, setIsRegister] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const router = useRouter();
 
-  const { signup, login } = useAuth();
+  const { signup, signin, loading } = useAuth();
 
   async function handleSubmit() {
+    setErrorMessage(null); // Clear previous error messages
+    
+    // Validate input
     if (!email || !password || password.length < 6) {
-      setErrorMessage(
-        "Please provide valid email and password (min 6 characters)."
-      );
+      setErrorMessage("Please provide valid email and password (min 6 characters).");
       return;
     }
-    setAuthenticating(true);
-    setErrorMessage(""); // Clear previous error message if any
     try {
       if (isRegister) {
         console.log("Signing up a new user");
-        await signup(email, password);
+        await signup(email, password); // If successful, no error
       } else {
         console.log("Logging in existing user");
-        await login(email, password);
+        await signin(email, password); // Catch errors from signin
       }
-    } catch (err) {
-      console.log("Error Message: " + err.message, "Error Code: " + err.code);
-      switch (err.code) {
-        case "auth/user-not-found":
-          setErrorMessage("No user found with this email.");
-          break;
-        case "auth/wrong-password":
-          setErrorMessage("Incorrect password. Please try again.");
-          break;
-        case "auth/invalid-email":
-          setErrorMessage("Invalid email format.");
-          break;
-        default:
-          setErrorMessage(
-            "Failed to authenticate. Please try again. OR, register first if you don't have an account yet."
-          );
-      }
+  
+      // Redirect to homepage only if sign-in or sign-up was successful
+      router.push("/");
+    } catch (error) {
+      // Catch and handle Firebase auth errors locally
+      setErrorMessage(error.message);
     } finally {
-      setAuthenticating(false);
+      setAuthenticating(false); // Stop authenticating once done
     }
+  }
+  // return a spinner when loading state from AuthContext is true
+  if (loading) {
+    return <Loading />;
   }
 
   return (
@@ -104,7 +99,6 @@ export default function Login() {
         <button
           onClick={() => {
             setIsRegister(!isRegister);
-            setErrorMessage(""); // Clear error message when switching mode
           }}
           className="text-purple-400"
         >
