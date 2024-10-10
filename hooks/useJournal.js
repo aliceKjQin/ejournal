@@ -33,6 +33,7 @@ export function useJournal() {
   // get the specified date entry by user; useCallback to memorize getEntry to avoid re-render
   const getEntry = useCallback(
     async (date) => {
+      if (entries[date]) return entries[date]; // If the date entry is already available in the local state (entries), no need to fetch it again from db. This saves network bandwidth and reduces latency, providing a faster response to the user.
       try {
         // fetch if the date entry is not already present in the entries object
         if (!entries[date]) {
@@ -41,11 +42,10 @@ export function useJournal() {
           setEntries((prev) => ({ ...prev, [date]: entry }));
           setLoading(false);
         }
-        return entries[date]; // If the date entry is already available in the local state (entries), no need to fetch it again from db. This saves network bandwidth and reduces latency, providing a faster response to the user.
+        return entry
       } catch (error) {
         console.error("Failed fetching date entry: ", error);
         setLoading(false);
-        return null;
       }
     },
     [user, entries]

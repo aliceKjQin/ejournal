@@ -37,7 +37,7 @@ export default function HomePage() {
           setTodayJournalData(null);
         });
     }
-  }, [user, todayDate, getEntry]);
+  }, [user, todayDate]);
 
   const journalTypes = ["morning", "evening"];
 
