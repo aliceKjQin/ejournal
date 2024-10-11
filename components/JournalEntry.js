@@ -8,29 +8,25 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
+// Helper function to check if an entry is effectively empty, i.e., check the items inside the string arr of fields are all empty.
+const isEntryEmpty = (entry) => {
+  if (!entry) return true;
+  return Object.values(entry).every(arr => arr.every(item => item === ""));
+};
 
+// the data passed in from homepage is the each type's entry, i.e., { amazingThings: ["", "", ""], improvements: ["","", ""]}
 export default function JournalEntry({
   type,
   data,
   date,
-  disableInteractions,
+  disableButton
 }) {
   const { saveEntry, loading } = useJournal();
-  const [editMode, setEditMode] = useState(!data);
-  const [formData, setFormData] = useState(
-    data || {
-      morning: {
-        gratitude: ["", "", ""],
-        goals: ["", "", ""],
-        affirmations: ["", "", ""],
-      },
-      evening: {
-        amazingThings: ["", "", ""],
-        improvements: ["", "", ""],
-      },
-    }
-  );
-  const { user} = useAuth()
+  const { user } = useAuth();
+
+  // Initialize formData and editMode for the specific type
+  const [formData, setFormData] = useState(data);
+  const [editMode, setEditMode] = useState(isEntryEmpty(data));
 
   const fields =
     type === "morning"
@@ -44,32 +40,20 @@ export default function JournalEntry({
     amazingThings: "Amazing things that happened today ...",
     improvements: "How could I have made today better ...",
   };
-  
+
   // Initialize a ref to store references to each textarea
   const textareasRef = useRef([]);
 
   useEffect(() => {
-    setFormData(
-      data || {
-        morning: {
-          gratitude: ["", "", ""],
-          goals: ["", "", ""],
-          affirmations: ["", "", ""],
-        },
-        evening: {
-          amazingThings: ["", "", ""],
-          improvements: ["", "", ""],
-        },
-      }
-    );
-    setEditMode(!data);
+    setFormData(data);
+    setEditMode(isEntryEmpty(data)); // Set editMode based on the specific type's data
   }, [data]);
 
   // ensures that text areas are correctly sized to show all content when an old entry is loaded, without requiring user interaction.
   useEffect(() => {
     textareasRef.current.forEach((textarea) => {
       if (textarea) {
-        adjustTextareaHeight(textarea)
+        adjustTextareaHeight(textarea);
       }
     });
   }, [formData]);
@@ -77,12 +61,7 @@ export default function JournalEntry({
   const handleInputChange = (field, index, value) => {
     setFormData((prev) => ({
       ...prev,
-      [type]: {
-        ...prev[type],
-        [field]: prev[type][field].map((item, i) =>
-          i === index ? value : item
-        ),
-      },
+      [field]: prev[field].map((item, i) => (i === index ? value : item)),
     }));
   };
 
@@ -92,20 +71,22 @@ export default function JournalEntry({
   };
 
   const handleSave = async () => {
-    const dataToSave = formData[type]
-    await saveEntry(date, type, dataToSave);
+
+    await saveEntry(date, type, formData);
     setEditMode(false);
   };
 
   if (loading && user) {
-    return <Loading />
+    return <Loading />;
   }
 
   return (
     <div className="bg-white dark:bg-gray-100 shadow overflow-hidden sm:rounded-lg">
       <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-        <h3 className={`text-lg leading-6 font-medium ${roboto.className} textGradient`}>
-          {type.charAt(0).toUpperCase() + type.slice(1)} Entry
+        <h3
+          className={`text-lg capitalize leading-6 font-medium ${roboto.className} textGradient`}
+        >
+          {type} Entry
         </h3>
         {!editMode && (
           <button
@@ -132,7 +113,7 @@ export default function JournalEntry({
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <ul className="border border-gray-200 rounded-md divide-y divide-gray-200">
-                  {formData[type][field].map((item, itemIndex) => (
+                  {formData[field].map((item, itemIndex) => (
                     <li
                       key={itemIndex}
                       className="pl-3 pr-4 py-3 flex items-center justify-between text-sm"
@@ -146,21 +127,19 @@ export default function JournalEntry({
                             adjustTextareaHeight(e.target);
                           }}
                           className="flex-1 focus:ring-purple-500 block w-full min-w-0 rounded-md sm:text-sm resize-none overflow-auto border-gray-300"
-                      
                           ref={(el) => (textareasRef.current[itemIndex] = el)}
                           style={{ minHeight: "50px" }}
                           rows={1}
-                          disabled={disableInteractions}
                         />
                       ) : (
                         <span
-                        style={{
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-word",
-                        }}
-                      >
-                        {item}
-                      </span>
+                          style={{
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                          }}
+                        >
+                          {item}
+                        </span>
                       )}
                     </li>
                   ))}
@@ -170,7 +149,7 @@ export default function JournalEntry({
           ))}
         </dl>
       </div>
-      {editMode && !disableInteractions && (
+      {editMode && !disableButton && (
         <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
           <button
             onClick={handleSave}

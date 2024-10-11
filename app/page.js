@@ -4,7 +4,7 @@ import JournalEntry from "@/components/JournalEntry";
 import Main from "@/components/Main";
 import { useAuth } from "@/contexts/AuthContext";
 import { useJournal } from "@/hooks/useJournal";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { journalInstruction } from "@/utils";
 import Tooltip from "@/components/Tooltip";
 import { Roboto } from "next/font/google";
@@ -20,24 +20,33 @@ export default function HomePage() {
 
   const todayDate = new Date().toLocaleDateString('en-CA'); // 'en-CA' gives the date format YYYY-MM-DD
 
-  console.log("Today:", todayDate);
-
-  console.log("Today's Journal Data:", todayJournalData);
-
-  // Fetch journal data for today when component mounts or user changes
+  // Fetch journal data for today when component mounts or user, todayDate, todayJournalData changes
   useEffect(() => {
     if (user) {
       getEntry(todayDate)
         .then((entry) => {
           console.log("Fetched entry:", entry);
-          setTodayJournalData(entry);
+          // Ensure both morning and evening structures exist, before passing to JournalEntry component
+          const completeEntry = {
+            morning: {
+              gratitude: ["", "", ""],
+              goals: ["", "", ""],
+              affirmations: ["", "", ""],
+            },
+            evening: {
+              amazingThings: ["", "", ""],
+              improvements: ["", "", ""],
+            },
+            ...entry // If entry has data for one type (e.g., morning), it will overwrite the morning structure while keeping the default evening structure.; If entry return is {} (no existing entry), the completeEntry will maintain the default structure for both morning and evening, so when it pass to JournalEntry, it won't run into errors like format[field] undefined. *** if null or undefined were passed instead of an empty object, it will cause issues in rendering the JournalEntry component, as the expected structure wouldn't be available.
+          };
+          setTodayJournalData(completeEntry);
         })
         .catch((error) => {
           console.error("Error fetching journal data:", error);
           setTodayJournalData(null);
         });
     }
-  }, [user, todayDate]);
+  }, [user, todayDate, getEntry]);
 
   const journalTypes = ["morning", "evening"];
 
@@ -50,14 +59,14 @@ export default function HomePage() {
       {/* if no user, render a message to remind login and non-interactive JournalEntry component */}
       {!user ? (
         <>
-          <p className={`textGradient text-lg ${roboto.className}`}>Please login to journal</p>
+          <p className={`text-l ${roboto.className}`}>Please login to journal</p>
           {/* journal entry */}
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             {journalTypes.map((type) => (
               <JournalEntry
                 key={type}
                 type={type}
-                disableInteractions={!user}
+                disableButton={!user}
               />
             ))}
           </div>
@@ -74,7 +83,7 @@ export default function HomePage() {
                 key={type}
                 type={type}
                 date={todayDate}
-                data={todayJournalData || ""}
+                data={todayJournalData?.[type]}           
               />
             ))}
           </div>

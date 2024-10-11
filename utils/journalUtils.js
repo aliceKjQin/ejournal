@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { collection, doc, setDoc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
 
 // firestore structure: users/<userId>/journalEntries/<date>; date is the unique key for each entry.
 
@@ -13,8 +13,8 @@ export async function saveJournalEntry(userId, date, entryType, data) {
 export async function getJournalEntry(userId, date) {
   const entryRef = doc(db, 'users', userId, 'journalEntries', date);
   const queryResult = await getDoc(entryRef);
-  return queryResult.exists() ? queryResult.data() : null;
-}
+  return queryResult.exists() ? queryResult.data() : {};
+} // *** important to return {} here NOT null or undefined when no entry return, so it can be properly processed in getEntry of useJournal and pass in homepage's useEffect!
 
 // get all journal entries by user id
 export async function getJournalEntries(userId) {

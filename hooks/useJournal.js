@@ -36,16 +36,15 @@ export function useJournal() {
       if (entries[date]) return entries[date]; // If the date entry is already available in the local state (entries), no need to fetch it again from db. This saves network bandwidth and reduces latency, providing a faster response to the user.
       try {
         // fetch if the date entry is not already present in the entries object
-        if (!entries[date]) {
-          setLoading(true);
-          const entry = await getJournalEntry(user.uid, date);
-          setEntries((prev) => ({ ...prev, [date]: entry }));
-          setLoading(false);
-        }
-        return entry
+        setLoading(true);
+        const entry = await getJournalEntry(user.uid, date);
+        setEntries((prev) => ({ ...prev, [date]: entry }));
+        setLoading(false);
+        return entry;
       } catch (error) {
         console.error("Failed fetching date entry: ", error);
         setLoading(false);
+        return {}
       }
     },
     [user, entries]

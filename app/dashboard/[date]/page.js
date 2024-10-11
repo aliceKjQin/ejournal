@@ -35,8 +35,8 @@ export default function JournalPage({ params }) {
         Review Journal | <span className="">{date}</span>
       </p>
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <JournalEntry type="morning" date={date} data={entry} />
-        <JournalEntry type="evening" date={date} data={entry} />
+        { entry?.morning ? (<JournalEntry type="morning" date={date} data={entry["morning"]} />) : ""}
+        { entry?.evening ? (<JournalEntry type="evening" date={date} data={entry["evening"]} />) : ""}
       </div>
     </div>
   );
