@@ -113,7 +113,7 @@ export default function JournalEntry({
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <ul className="border border-gray-200 rounded-md divide-y divide-gray-200">
-                  {formData[field].map((item, itemIndex) => (
+                  {formData?.[field].map((item, itemIndex) => (
                     <li
                       key={itemIndex}
                       className="pl-3 pr-4 py-3 flex items-center justify-between text-sm"
