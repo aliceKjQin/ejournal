@@ -4,7 +4,7 @@ import JournalEntry from "@/components/JournalEntry";
 import Main from "@/components/Main";
 import { useAuth } from "@/contexts/AuthContext";
 import { useJournal } from "@/hooks/useJournal";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { journalInstruction } from "@/utils";
 import Tooltip from "@/components/Tooltip";
 import { Roboto } from "next/font/google";
@@ -14,7 +14,7 @@ const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
 
 export default function HomePage() {
-  const [todayJournalData, setTodayJournalData] = useState(null);
+  const [todayJournalData, setTodayJournalData] = useState({});
   const { user } = useAuth();
   const { getEntry, loading } = useJournal();
 
