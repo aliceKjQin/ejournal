@@ -9,7 +9,7 @@ const opensans = Open_Sans({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Journal",
-  description: "Track your daily study hours toward your goal!",
+  description: "Journal to capture your daily thoughts📓!",
 };
 
 export default function RootLayout({ children }) {
