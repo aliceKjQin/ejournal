@@ -43,7 +43,7 @@ export default function HomePage() {
         })
         .catch((error) => {
           console.error("Error fetching journal data:", error);
-          setTodayJournalData(null);
+          setTodayJournalData({});
         });
     }
   }, [user, todayDate, getEntry]);
