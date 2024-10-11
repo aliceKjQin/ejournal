@@ -14,7 +14,7 @@ export async function getJournalEntry(userId, date) {
   const entryRef = doc(db, 'users', userId, 'journalEntries', date);
   const queryResult = await getDoc(entryRef);
   return queryResult.exists() ? queryResult.data() : {};
-} // *** important to return {} here NOT null or undefined when no entry return, so it can be properly processed in getEntry of useJournal and pass in homepage's useEffect!
+} // *** important to return {} here NOT null or undefined when no existing entry return, so it can be properly processed in getEntry of useJournal and pass in TodayJournal's useEffect!
 
 // get all journal entries by user id
 export async function getJournalEntries(userId) {

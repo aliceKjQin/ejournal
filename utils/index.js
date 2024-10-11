@@ -9,18 +9,18 @@ export const journalInstruction = (
     </p>
 
     <ul
-      style={{ listStyleType: "disc", paddingLeft: "20px", margin: "10px 0" }}
+      style={{ paddingLeft: "20px", margin: "10px 0" }}
     >
-      <li style={{ marginBottom: '5px' }}>An old relationship that helped or meant a lot to you.</li>
-      <li style={{ marginBottom: '5px' }}>
+      <li style={{ marginBottom: '5px' }}><span>✏️ </span>An old relationship that helped or meant a lot to you.</li>
+      <li style={{ marginBottom: '5px' }}><span>✏️ </span>
         An opportunity you have today, whether it&rsquo;s something small like
         calling a parent or going to work.
       </li>
-      <li style={{ marginBottom: '5px' }}>
+      <li style={{ marginBottom: '5px' }}><span>✏️ </span>
         Something great that happened yesterday, whether you experienced or
         witnessed it.
       </li>
-      <li style={{ marginBottom: '5px' }}>
+      <li style={{ marginBottom: '5px' }}><span>✏️ </span>
         Something simple near you, such as a beautiful cloud, your coffee, or
         the pen you&rsquo;re using. Simple, concrete things can bring more
         presence into your gratitude practice.
