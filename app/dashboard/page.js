@@ -12,7 +12,6 @@ export default function DashboardPage() {
   const [completeEntries, setCompleteEntries] = useState({})
 
   const { user, userEntriesObj, loading: loadingAuth } = useAuth();
-  console.log("SelectedDate in parent Dashboard: ", selectedDate);
 
   // Fetch userEntriesObj
   useEffect(() => {
@@ -32,8 +31,6 @@ export default function DashboardPage() {
     }
   }, [selectedDate]);
 
-  console.log("CompleteEntries in Dashboard: ", completeEntries)
-
   if (loadingAuth) return <Loading />
 
   return (
@@ -43,7 +40,7 @@ export default function DashboardPage() {
         selectedDate={selectedDate}
         completeEntries={completeEntries} // Pass entries to Calendar to reflect note icon right after journal is saved
       />
-      <SelectedJournal selectedDate={selectedDate} completeEntries={completeEntries}/>
+      <SelectedJournal selectedDate={selectedDate} />
     </Main>
   );
 }

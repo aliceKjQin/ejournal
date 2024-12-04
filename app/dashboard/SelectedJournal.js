@@ -11,18 +11,16 @@ import Loading from "@/components/Loading";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
-export default function SelectedJournal({ selectedDate, completeEntries }) {
+export default function SelectedJournal({ selectedDate }) {
   const [journalData, setJournalData] = useState({});
   const { userEntriesObj } = useAuth();
   const { getEntry, saveEntry } = useJournal();
-  console.log("Selected day in TodayJounral child", selectedDate);
 
   // Fetch journal data for today when component mounts or user, selectedDate, journalData changes
   useEffect(() => {
     if ( userEntriesObj && selectedDate) {
       getEntry(selectedDate)
         .then((entry) => {
-          console.log("Fetched entry:", entry);
           // Ensure both morning and evening structures exist, before passing to JournalEntry component
           const completeEntry = {
             morning: {

@@ -50,7 +50,6 @@ export function AuthProvider({ children }) {
         setLoading(true);
         setUser(user);
         if (!user) {
-          console.log("No User Found");
           return;
         }
 

@@ -23,7 +23,6 @@ export async function getJournalEntries(userId) {
     const queryResult = await getDocs(entriesRef);
 
     if (queryResult.empty) {
-      console.log("No journal entries found for user: ", userId);
       return {};
     }
     // build entries object from query
@@ -32,7 +31,6 @@ export async function getJournalEntries(userId) {
       return acc;
     }, {});
 
-    console.log("Fetched entries: ", entries);
     return entries;
   } catch (error) {
     console.error("Error fetching journal entries for user: ", userId, error);

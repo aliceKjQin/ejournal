@@ -42,12 +42,9 @@ export default function Calendar({
   const firstDayOfMonth = monthNow.getDay(); // calculates which day of the week July 1st falls on (e.g., 0 for Sunday, 1 for Monday).
   const daysInMonth = new Date(selectedYear, numericMonth + 1, 0).getDate();
 
-  console.log("User CompleteEntries in Calendar", completeEntries);
-
   const handleDateSelect = (dayIndex) => {
     const dateStr = `${selectedYear}-${numericMonth + 1}-${dayIndex}`;
     onDateSelect(dateStr);
-    console.log("selectedDateString:", dateStr);
   };
 
   function handleIncrementAndDecrementMonth(val) {

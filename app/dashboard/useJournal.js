@@ -40,7 +40,6 @@ export function useJournal() {
 
   // save a specified date entry per type
   const saveEntry = async (date, entryType, data) => {
-    console.log("Date: ", date, "Entry Type: ", entryType, "Data: ", data);
     if (!user) {
       console.error("User is not defined. Cannot save entry.");
       return;

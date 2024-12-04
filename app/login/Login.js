@@ -36,7 +36,6 @@ export default function Login() {
     setErrorMessage(""); // Clear previous error message if any
     try {
       if (isRegister) {
-        console.log("Signing up a new user");
         // Validate password in create account view
         const { valid: passwordValid, message: passwordMessage } =
           validatePassword(password);
@@ -51,7 +50,6 @@ export default function Login() {
         await signup(email, password);
         router.push("/dashboard");
       } else {
-        console.log("Logging in existing user");
         // Basic validation for Sign In to ensure no empty password
         if (!password) {
           setErrorMessage("Please enter your password.");
@@ -92,7 +90,6 @@ export default function Login() {
         "Password reset email sent. Please check your inbox (or spam folder)."
       );
     } catch (error) {
-      console.log("Error resetting password: ", error.message);
       setErrorMessage(
         "Failed to send reset email. Ensure your email is correct and try again."
       );
