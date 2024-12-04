@@ -1,11 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Roboto } from "next/font/google";
-import { useJournal } from "@/hooks/useJournal";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import Loading from "./Loading";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
@@ -26,10 +23,11 @@ const months = {
 
 const dayList = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export default function Calendar(props) {
-  const { demo, completeData } = props;
-  const { user } = useAuth();
-  const { loading, entries } = useJournal();
+export default function Calendar({
+  onDateSelect,
+  selectedDate,
+  completeEntries,
+}) {
   const router = useRouter();
 
   const now = new Date();
@@ -44,25 +42,13 @@ export default function Calendar(props) {
   const firstDayOfMonth = monthNow.getDay(); // calculates which day of the week July 1st falls on (e.g., 0 for Sunday, 1 for Monday).
   const daysInMonth = new Date(selectedYear, numericMonth + 1, 0).getDate();
 
-  const entryDatesArr = Object.keys(entries);
-  // Check if a day has entry in the selected month and year
-  useEffect(() => {
-    const checkMonthEntries = async () => {
-      const newDaysHaveEntry = {};
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${selectedYear}-${String(numericMonth + 1).padStart(
-          2,
-          "0"
-        )}-${String(day).padStart(2, "0")}`;
-        if (entryDatesArr.includes(dateStr)) {
-          newDaysHaveEntry[day] = { hasEntry: true, dateStr }; // Mark the day as having an entry
-        }
-      }
-      setDaysHaveEntry(newDaysHaveEntry);
-    };
+  console.log("User CompleteEntries in Calendar", completeEntries);
 
-    checkMonthEntries();
-  }, [selectedMonth, selectedYear, user, entries]);
+  const handleDateSelect = (dayIndex) => {
+    const dateStr = `${selectedYear}-${numericMonth + 1}-${dayIndex}`;
+    onDateSelect(dateStr);
+    console.log("selectedDateString:", dateStr);
+  };
 
   function handleIncrementAndDecrementMonth(val) {
     // val +1 -1
@@ -89,43 +75,37 @@ export default function Calendar(props) {
   const daysToDisplay = firstDayOfMonth + daysInMonth;
   const numRows = Math.floor(daysToDisplay / 7) + (daysToDisplay % 7 ? 1 : 0);
 
-  if (loading) {
-    return <Loading />;
-  }
-
   return (
     //  backward and forward bar
     <div className="flex flex-col gap-2">
       {/* stats bar */}
-      {entryDatesArr.length > 0 ? (
+      {Object.keys(completeEntries).length > 0 ? (
         <p
-          className={`text-center text-base mb-10 sm:mb-16 ${roboto.className}`}
+          className={`text-center sm:text-base mb-4 sm:mb-6 ${roboto.className}`}
         >
-          You&apos;ve been journaling for{" "}
-          <span className="font-bold text-xl textGradient">
-            {entryDatesArr.length}
-          </span>{" "}
-          days 🗓️{" "}
+          <i className="fa-solid fa-calendar-days mr-2"></i>
+          Total journal days: {Object.keys(completeEntries).length}
         </p>
       ) : (
-        <p className={`text-center text-base mb-10 sm:mb-16 ${roboto.className}`}>You don&apos;t have any journal entries yet. Why not start one today and capture your thoughts? 💡</p>
+        <p className={`text-center text-base mb-4 sm:mb-6 ${roboto.className}`}>
+          You don&apos;t have any journal entries yet. Why not start one today
+          and capture your thoughts?
+        </p>
       )}
       <div className="grid grid-cols-5 gap-4">
         <button
-          className="mr-auto text-purple-400 text-lg sm:text-xl duration-200 hover:opacity-60"
+          className="mr-auto text-lg sm:text-xl duration-200 hover:opacity-60"
           onClick={() => handleIncrementAndDecrementMonth(-1)}
         >
           <i className="fa-solid fa-circle-chevron-left"></i>
         </button>
         {/* div containing the month, year, and "Today" button */}
         <div className="col-span-3 flex justify-center items-center">
-          <p
-            className={`text-center textGradient whitespace-nowrap ${roboto.className}`}
-          >
+          <p className={`text-center whitespace-nowrap ${roboto.className}`}>
             {selectedMonth}, {selectedYear}
           </p>
           <button
-            className={`ml-4 bg-purple-400 text-white px-3  rounded-lg duration-200 hover:opacity-60 ${roboto.className}`}
+            className={`ml-4 bg-stone-400 text-white px-3  rounded-lg duration-200 hover:opacity-60 ${roboto.className}`}
             onClick={handleToday}
           >
             Today
@@ -133,25 +113,22 @@ export default function Calendar(props) {
         </div>
 
         <button
-          className="ml-auto text-purple-400 text-lg sm:text-xl duration-200 hover:opacity-60"
+          className="ml-auto text-lg sm:text-xl duration-200 hover:opacity-60"
           onClick={() => handleIncrementAndDecrementMonth(1)}
         >
           <i className="fa-solid fa-circle-chevron-right"></i>
         </button>
       </div>
-      {/* display day of week row (Sun-Sat) */}
-      <div className="sm:py-6 md:py-10 grid grid-cols-7">
+      {/* Sun-Sat header row */}
+      <div className="sm:py-2 grid grid-cols-7 text-xs sm:text-sm">
         {dayList.map((dayOfWeek, dayOfWeekIndex) => (
-          <span
-            key={dayOfWeekIndex}
-            className={`text-center textGradient ${roboto.className}`}
-          >
+          <span key={dayOfWeekIndex} className={`text-center font-semibold`}>
             {dayOfWeek}
           </span>
         ))}
       </div>
       {/* calendar */}
-      <div className="flex flex-col overflow-hidden gap-1 py-4 ">
+      <div className="flex flex-col overflow-hidden gap-1 mb-6">
         {[...Array(numRows).keys()].map((row, rowIndex) => {
           return (
             <div key={rowIndex} className="grid grid-cols-7">
@@ -174,41 +151,31 @@ export default function Calendar(props) {
                 let isCurrentYear = selectedYear === now.getFullYear();
 
                 if (!dayDisplay) {
-                  return (
-                    <div
-                      className="bg-white dark:bg-zinc-700"
-                      key={dayOfWeekIndex}
-                    ></div>
-                  );
+                  return <div key={dayOfWeekIndex}></div>;
                 }
+
+                const formattedDate = `${selectedYear}-${
+                  numericMonth + 1
+                }-${dayIndex}`;
+                const hasEntry = completeEntries[formattedDate];
+                const isSelected = selectedDate === formattedDate;
 
                 return (
                   <div
                     key={dayOfWeekIndex}
-                    className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg ${
-                      isToday && isCurrentMonth && isCurrentYear
-                        ? "border-yellow-400 border-dashed border-2"
-                        : "border-purple-100"
-                    } ${
-                      daysHaveEntry[dayIndex]
-                        ? "text-white bg-purple-400"
-                        : "text-purple-400 dark:text-white bg-white dark:bg-zinc-700"
-                    } `}
+                    className={`text-xs text-stone-600 sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg ${
+                      isSelected
+                        ? "border-yellow-400 border-2" // Selected day styling
+                        : isToday && isCurrentMonth && isCurrentYear
+                        ? "border-yellow-400 border-dashed border-2" // Today's styling
+                        : "border-stone-300" // Default border styling
+                    } ${hasEntry ? "bg-stone-400" : ""}
+                     `}
+                    onClick={() => handleDateSelect(dayIndex)}
                   >
                     <p>{dayIndex}</p>
-                    {daysHaveEntry[dayIndex]?.hasEntry && (
-                      <span
-                        role="img"
-                        aria-label="journal"
-                        className="cursor-pointer text-base"
-                        onClick={() => {
-                          router.push(
-                            `/dashboard/${daysHaveEntry[dayIndex].dateStr}`
-                          );
-                        }}
-                      >
-                        📓
-                      </span>
+                    {hasEntry && (
+                      <i className="fa-solid fa-pen-to-square fa-lg text-yellow-400"></i>
                     )}
                   </div>
                 );

@@ -1,12 +1,14 @@
 "use client";
 
-import { auth } from "@/lib/firebase";
+import { db, auth } from "@/firebase";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
+  sendPasswordResetEmail,
 } from "firebase/auth";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { useContext, useState, useEffect, createContext } from "react";
 
 const AuthContext = createContext();
@@ -17,7 +19,29 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [userEntriesObj, setUserEntriesObj] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [notes, setNotes] = useState([]);
+
+  // Auth handlers
+  function signup(email, password) {
+    return createUserWithEmailAndPassword(auth, email, password);
+  }
+
+  function login(email, password) {
+    return signInWithEmailAndPassword(auth, email, password);
+  }
+
+  function logout() {
+    setUserEntriesObj(null);
+    setUser(null);
+    return signOut(auth);
+  }
+
+  // Function to send a password reset email
+  function sendPasswordReset(email) {
+    return sendPasswordResetEmail(auth, email);
+  }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -29,75 +53,42 @@ export function AuthProvider({ children }) {
           console.log("No User Found");
           return;
         }
+
+        // if user exists, fetch data from firebase database
+        console.log("Fetching User Data");
+        const entriesCollectionRef = collection(
+          db,
+          "users",
+          user.uid,
+          "journalEntries"
+        );
+        const entriesSnap = await getDocs(entriesCollectionRef);
+
+        const firebaseData = {};
+        entriesSnap.forEach((doc) => {
+          firebaseData[doc.id] = doc.data(); // Collect entries with their document ID (date) as key
+        });
+
+        setUserEntriesObj(firebaseData);
       } catch (error) {
-        console.error("Error during auth state change:", error.message);
+        console.log(error.message);
       } finally {
-        setLoading(false); // no longer loading once we know the auth state
+        setLoading(false);
       }
     });
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
-
-  // Auth handlers
-  const signup = async (email, password) => {
-    setLoading(true)
-    try {
-      await createUserWithEmailAndPassword(auth, email, password)
-    } catch (error) {
-      console.error("Signup failed", error.message, error.code)
-      throw new Error(handleFirebaseAuthError(error)) // handle specific firebase errors
-    } finally {
-      setLoading(false)
-    }
-   }
-
-   const signin = async (email, password) => {
-    setLoading(true)
-    try {
-      await signInWithEmailAndPassword(auth, email, password)
-    } catch (error) {
-      console.error("Failed to sign in: ", error.message, error.code)
-      const friendlyMessage = handleFirebaseAuthError(error)
-      throw new Error(friendlyMessage)
-    } finally {
-      setLoading(false)
-    }
-   }
-
-   const signout = async () => {
-    setLoading(true)
-    try {
-      await signOut(auth)
-    } catch (error) {
-      console.error("Signout Failed", error.message, error.code)
-    } finally {
-      setLoading(false)
-    }
-   }
 
   const value = {
     user,
+    userEntriesObj,
+    setUserEntriesObj,
     loading,
     signup,
-    signin,
-    signout,
+    login,
+    logout,
+    sendPasswordReset,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-// Utility function to map Firebase errors to user-friendly messages
-function handleFirebaseAuthError(error) {
-  switch (error.code) {
-    case 'auth/invalid-email':
-      return 'Invalid email address. Please check the format.';
-    case 'auth/user-disabled':
-      return 'This user account has been disabled.';
-    case 'auth/user-not-found':
-      return 'No user found with these credentials.';
-    case 'auth/wrong-password':
-      return 'Incorrect password. Please try again.';
-    default:
-      return 'An error occurred during authentication. Please try again later.';
-  }
 }

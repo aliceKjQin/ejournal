@@ -1,14 +1,8 @@
-
 import Main from "@/components/Main";
-import TodayJournal from "@/components/TodayJournal";
-
-
+import Hero from "./Hero";
 
 export default function HomePage() {
-
-  return (
-    <Main>
-      <TodayJournal />
-    </Main>
-  );
+  return <Main>
+    <Hero />
+  </Main>;
 }

@@ -1,15 +1,53 @@
-import Calendar from '@/components/Calendar'
-import Main from '@/components/Main'
+"use client";
 
-export const metadata = {
-  title: "Journal | Dashboard",
-  description: "Journal to capture your daily thoughts📓!",
-};
+import Calendar from "./Calendar";
+import Main from "@/components/Main";
+import SelectedJournal from "@/app/dashboard/SelectedJournal";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import Loading from "@/components/Loading";
 
 export default function DashboardPage() {
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [completeEntries, setCompleteEntries] = useState({})
+
+  const { user, userEntriesObj, loading: loadingAuth } = useAuth();
+  console.log("SelectedDate in parent Dashboard: ", selectedDate);
+
+  // Fetch userEntriesObj
+  useEffect(() => {
+    if (!user || !userEntriesObj) return;
+    setCompleteEntries(userEntriesObj)
+  }, [user, userEntriesObj]);
+
+  // Default the selectedDate to today using the user's local time without zero-padding for day
+  useEffect(() => {
+    if (!selectedDate) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth() + 1; // Months are 0-indexed
+      const day = today.getDate(); // No leading zero
+      const formattedToday = `${year}-${month}-${day}`;
+      setSelectedDate(formattedToday);
+    }
+  }, [selectedDate]);
+
+  console.log("CompleteEntries in Dashboard: ", completeEntries)
+
+  if (loadingAuth) return <Loading />
+
   return (
     <Main>
-        <Calendar />
+      <Calendar
+        onDateSelect={setSelectedDate}
+        selectedDate={selectedDate}
+        completeEntries={completeEntries} // Pass entries to Calendar to reflect note icon right after journal is saved
+      />
+      <SelectedJournal selectedDate={selectedDate} completeEntries={completeEntries}/>
     </Main>
-  )
+  );
 }
+
+// Dashboard: Manages and passes shared states:'completeEntries' (which is coming from global context userEntriesObj) & 'selectedDate'.
+// Calendar: Displays journal highlights (note icon and selected cell) based on shared states.
+// SelectedJournal: Reads and updates entries from data which is coming from global context userEntriesObj.

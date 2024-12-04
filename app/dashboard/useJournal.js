@@ -6,29 +6,20 @@ import {
   getJournalEntries,
   getJournalEntry,
   saveJournalEntry,
-} from "@/utils/journalUtils";
+} from "@/app/dashboard/journalUtils";
 
 export function useJournal() {
-  const { user } = useAuth();
+  const { user, setUserEntriesObj } = useAuth();
   const [entries, setEntries] = useState({});
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      const loadEntries = async () => {
-        try {
-          setLoading(true);
-          const fetchedEntries = await getJournalEntries(user.uid);
-          setEntries(fetchedEntries || {});
-          setLoading(false);
-        } catch (error) {
-          console.error("Failed fetching entries: ", error);
-          setLoading(false);
-        }
-      };
-      loadEntries();
+  const getEntries = async () => {
+    try {
+      const fetchedEntries = await getJournalEntries(user.uid);
+      setEntries(fetchedEntries || {});
+    } catch (error) {
+      console.error("Failed fetching entries: ", error);
     }
-  }, [user]);
+  };
 
   // get the specified date entry by user; useCallback to memorize getEntry to avoid re-render
   const getEntry = useCallback(
@@ -36,15 +27,12 @@ export function useJournal() {
       if (entries[date]) return entries[date]; // If the date entry is already available in the local state (entries), no need to fetch it again from db. This saves network bandwidth and reduces latency, providing a faster response to the user.
       try {
         // fetch if the date entry is not already present in the entries object
-        setLoading(true);
         const entry = await getJournalEntry(user.uid, date);
         setEntries((prev) => ({ ...prev, [date]: entry }));
-        setLoading(false);
         return entry;
       } catch (error) {
         console.error("Failed fetching date entry: ", error);
-        setLoading(false);
-        return {}
+        return {};
       }
     },
     [user, entries]
@@ -58,8 +46,8 @@ export function useJournal() {
       return;
     }
     try {
-      setLoading(true);
       await saveJournalEntry(user.uid, date, entryType, data);
+      // Update local state
       setEntries((prev) => ({
         ...prev,
         [date]: {
@@ -67,12 +55,19 @@ export function useJournal() {
           [entryType]: data,
         },
       }));
-      setLoading(false);
+
+      // Update global context
+      setUserEntriesObj((prev) => ({
+        ...prev,
+        [date]: {
+          ...prev[date],
+          [entryType]: data,
+        },
+      }));
     } catch (error) {
       console.error("Error saving journal entry:", error);
-      setLoading(false);
     }
   };
 
-  return { entries, loading, getEntry, saveEntry };
+  return { entries, getEntries, getEntry, saveEntry };
 }

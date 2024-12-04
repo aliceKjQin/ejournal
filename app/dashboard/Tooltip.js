@@ -15,7 +15,7 @@ export default function Tooltip({ children, content }) {
       onTouchStart={handleTouchStart} // Toggle on touch for mobile screen
     >
       {children}
-      {isHovered && <p className="mt-2 transition-opacity duration-200 ease-in-out">{content}</p>}
+      {isHovered && <div className="mt-2 transition-opacity duration-200 ease-in-out">{content}</div>}
     </div>
   );
 }

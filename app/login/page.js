@@ -1,5 +1,5 @@
 
-import Login from "@/components/Login";
+import Login from "./Login";
 import Main from "@/components/Main";
 import React from "react";
 
