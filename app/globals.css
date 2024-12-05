@@ -21,3 +21,10 @@
   }
 }
 
+/* Fallback outline on older iphones' Safari  */
+focus\:outline-yellow-200 {
+  outline: 2px solid #fde047; /* Tailwind yellow-200 */
+  outline-offset: 2px;
+  -webkit-outline: 2px solid #fde047;
+  -webkit-outline-offset: 2px;
+}
