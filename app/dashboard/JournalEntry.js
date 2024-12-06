@@ -1,11 +1,9 @@
 "use client";
 
+import React from "react";
 import { useState, useEffect, useRef } from "react";
-import { useJournal } from "@/app/dashboard/useJournal";
 import { Roboto } from "next/font/google";
-import Loading from "../../components/Loading";
-import { useAuth } from "@/contexts/AuthContext";
-import { validateNoteInput } from "./validateEntryInput";
+import { validateJournalEntry } from "./validateJournalEntry";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
@@ -15,10 +13,8 @@ const isEntryEmpty = (entry) => {
   return Object.values(entry).every((arr) => arr.every((item) => item === ""));
 };
 
-// the data passed in from homepage is the each type's entry, i.e., { amazingThings: ["", "", ""], improvements: ["","", ""]}
+// the data passed in from parent is the each type's entry, i.e., { amazingThings: ["", "", ""], improvements: ["","", ""]}
 export default function JournalEntry({ type, data, date, saveEntry }) {
-  const { user } = useAuth();
-
   // Initialize formData and editMode for the specific type
   const [formData, setFormData] = useState(data);
   const [editMode, setEditMode] = useState(isEntryEmpty(data));
@@ -54,8 +50,10 @@ export default function JournalEntry({ type, data, date, saveEntry }) {
     });
   }, [formData]);
 
+  console.log("formData: ", formData)
+
   const handleInputChange = (field, index, value) => {
-    const validationResult = validateNoteInput(value);
+    const validationResult = validateJournalEntry(value);
 
     if (!validationResult.valid) {
       setErrors((prev) => ({
@@ -106,12 +104,12 @@ export default function JournalEntry({ type, data, date, saveEntry }) {
     <div className="bg-stone-300 shadow-lg overflow-hidden rounded-lg text-sm">
       <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
         <h3 className={`text-lg capitalize leading-6 font-bold`}>
-          {type} Entry
+          {type} entry
         </h3>
         {!editMode && (
           <button
             onClick={() => setEditMode(true)}
-            className="px-4 py-2 border border-transparent  font-medium rounded-full text-white bg-stone-500 hover:bg-stone-600"
+            className="px-4 py-2 border border-transparent  font-medium rounded-full text-white bg-stone-500 hover:bg-yellow-500"
           >
             Edit
           </button>
@@ -133,7 +131,7 @@ export default function JournalEntry({ type, data, date, saveEntry }) {
               </dt>
               <dd className="mt-1  sm:mt-0 sm:col-span-2">
                 <ul className="border border-stone-200 rounded-md">
-                  {formData?.[field].map((item, itemIndex) => (
+                  {Array.isArray(formData?.[field]) && formData[field].map((item, itemIndex) => (
                     <li
                       key={itemIndex}
                       className="pl-3 pr-3 py-1 flex flex-col items-start"
@@ -184,7 +182,7 @@ export default function JournalEntry({ type, data, date, saveEntry }) {
           <button
             onClick={handleSave}
             disabled={hasErrors()} // Disable the Save button if there are errors
-            className="px-4 py-2 border border-transparent  font-medium rounded-full text-white bg-stone-500 hover:bg-stone-600"
+            className="px-4 py-2 border border-transparent  font-medium rounded-full text-white bg-stone-500 hover:bg-yellow-500"
           >
             Save
           </button>

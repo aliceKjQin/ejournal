@@ -1,3 +1,5 @@
+import React from "react";
+
 export const TooltipContent = (
   <div className="p-4 bg-yellow-200 rounded-3xl">
     <p>

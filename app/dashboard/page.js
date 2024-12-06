@@ -3,7 +3,7 @@
 import Calendar from "./Calendar";
 import Main from "@/components/Main";
 import SelectedJournal from "@/app/dashboard/SelectedJournal";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Loading from "@/components/Loading";
 

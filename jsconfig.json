@@ -3,5 +3,9 @@
     "paths": {
       "@/*": ["./*"]
     }
+  },
+  "type": "module",
+  "scripts": {
+    "test": "jest"
   }
 }

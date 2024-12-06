@@ -7,8 +7,8 @@ import Navbar from "./Navbar";
 const opensans = Open_Sans({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Journal",
-  description: "Journal to capture your daily thoughts📓!",
+  title: "eJournal",
+  description: "A lightweight and paperless version of a journal book",
 };
 
 export default function RootLayout({ children }) {
