@@ -2,10 +2,7 @@
 
 import React from "react";
 import { useState, useEffect, useRef } from "react";
-import { Roboto } from "next/font/google";
 import { validateJournalEntry } from "./validateJournalEntry";
-
-const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
 // Helper function to check if an entry is effectively empty, i.e., check the items inside the string arr of fields are all empty.
 const isEntryEmpty = (entry) => {
@@ -49,8 +46,6 @@ export default function JournalEntry({ type, data, date, saveEntry }) {
       }
     });
   }, [formData]);
-
-  console.log("formData: ", formData)
 
   const handleInputChange = (field, index, value) => {
     const validationResult = validateJournalEntry(value);
@@ -101,7 +96,7 @@ export default function JournalEntry({ type, data, date, saveEntry }) {
   };
 
   return (
-    <div className="bg-stone-300 shadow-lg overflow-hidden rounded-lg text-sm">
+    <div className="bg-stone-300 shadow-lg overflow-hidden rounded-lg text-sm" aria-label={type === "morning" ? "morning-entry" : "evening-entry"}>
       <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
         <h3 className={`text-lg capitalize leading-6 font-bold`}>
           {type} entry
@@ -139,6 +134,7 @@ export default function JournalEntry({ type, data, date, saveEntry }) {
                       {editMode ? (
                         <>
                           <textarea
+                           aria-label="journal-input"
                             type="text"
                             value={item}
                             onChange={(e) => {

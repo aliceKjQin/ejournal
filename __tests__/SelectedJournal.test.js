@@ -2,10 +2,10 @@ import React from "react";
 
 import {
   render,
-  act,
   screen,
   fireEvent,
   waitFor,
+  within,
 } from "@testing-library/react";
 import SelectedJournal from "@/app/dashboard/SelectedJournal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,152 +21,127 @@ jest.mock("@/app/dashboard/useJournal", () => ({
   useJournal: jest.fn(),
 }));
 
-// Mock font
-jest.mock("next/font/google", () => ({
-  Roboto: jest.fn().mockReturnValue({}),
-}));
-
 describe("SelectedJournal Component", () => {
-  // Define the mock data that will be returned by getEntry
-  const mockJournalData = {
-    morning: {
-      gratitude: ["Gratitude 1", "Gratitude 2", "Gratitude 3"],
-      goals: ["Goal 1", "Goal 2", "Goal 3"],
-      affirmations: ["Affirmation 1", "Affirmation 2", "Affirmation 3"],
-    },
-    evening: {
-      amazingThings: ["Amazing Thing 1", "Amazing Thing 2", "Amazing Thing 3"],
-      improvements: ["Improvement 1", "Improvement 2", "Improvement 3"],
-    },
-  };
-  const mockGetEntry = jest.fn().mockResolvedValueOnce(mockJournalData);
+  const mockGetEntry = jest.fn();
   const mockSaveEntry = jest.fn();
-  const mockUserEntriesObj = { someKey: "someValue" };
-  const mockSelectedDate = "2024-12-06";
 
   beforeEach(() => {
-    // Reset mocks before each test
-    mockGetEntry.mockReset();
-    mockSaveEntry.mockReset();
     useAuth.mockReturnValue({
-      userEntriesObj: mockUserEntriesObj,
+      userEntriesObj: {
+        "2024-12-10": {
+          morning: { affirmations: [], goals: [], gratitude: [] },
+        },
+        "2024-12-11": {
+          evening: { amazingThings: [], improvements: [] },
+        },
+        "2024-12-20": {
+          morning: { affirmations: [], goals: [], gratitude: [] },
+          evening: { amazingThings: [], improvements: [] },
+        },
+      },
     });
+
     useJournal.mockReturnValue({
       getEntry: mockGetEntry,
       saveEntry: mockSaveEntry,
     });
-  });
 
-  test("should render without crashing", () => {
-    act(() => {
-      render(<SelectedJournal selectedDate={mockSelectedDate} />);
-    });
-
-    // Check if the component renders the selected date
-    expect(screen.queryByText("Selected Date |")).toBeInTheDocument();
-
-    expect(screen.getByText(mockSelectedDate)).toBeInTheDocument();
-  });
-
-  test("should call getEntry on mount and set journal data", async () => {
-    const mockJournalData = {
-      morning: { gratitude: ["", "", ""] },
-      evening: { amazingThings: ["", "", ""] },
-    };
-
-    mockGetEntry.mockResolvedValueOnce(mockJournalData); // Simulate successful response
-
-    act(() => {
-      render(<SelectedJournal selectedDate={mockSelectedDate} />);
-    });
-
-    // Wait for the component to fetch and display journal data
-    await waitFor(() => expect(mockGetEntry).toHaveBeenCalledTimes(1));
-
-    // Check if the journal data is rendered
-    expect(screen.queryByText("Selected Date |")).toBeInTheDocument();
-  });
-
-  test("should handle error when getEntry fails", async () => {
-    mockGetEntry.mockRejectedValueOnce(new Error("Failed to fetch entry"));
-
-    act(() => {
-      render(<SelectedJournal selectedDate={mockSelectedDate} />);
-    });
-
-    // Wait for the component to attempt fetching journal data
-    await waitFor(() => expect(mockGetEntry).toHaveBeenCalledTimes(1));
-
-    // Optionally, you could test the state of the UI when there is an error
-    expect(screen.queryByText("Selected Date |")).toBeInTheDocument();
-  });
-
-  test("should call saveEntry when saving journal data", async () => {
-    const mockJournalData = {
-      morning: { gratitude: ["", "", ""] },
-      evening: { amazingThings: ["", "", ""] },
-    };
-
-    mockGetEntry.mockResolvedValueOnce(mockJournalData); // Simulate successful response
-
-    act(() => {
-      render(<SelectedJournal selectedDate={mockSelectedDate} />);
-    });
-
-    // simulate saving an entry and test that saveEntry gets called
-    const saveButtons = screen.getAllByText("Save"); // Get all 'Save' buttons
-    fireEvent.click(saveButtons[0]); // Click the first "Save" button
-
-    await waitFor(() => expect(mockSaveEntry).toHaveBeenCalledTimes(1));
-  });
-
-  test("should render JournalEntry with correct data", async () => {
-    const mockSelectedDate = "2024-12-06";
-    const mockSaveEntry = jest.fn();
-    const mockData = {
-      morning: {
-        gratitude: ["", "", ""],
-        goals: ["", "", ""],
-        affirmations: ["", "", ""],
+    mockGetEntry.mockResolvedValue({
+      evening: {
+        amazingThings: ["It was a good day"],
+        improvements: ["Sleep earlier"],
       },
-      evening: { amazingThings: ["", "", ""], improvements: ["", "", ""] },
-    };
-  
-    // Mock the getEntry to return mockData
-    const mockGetEntry = jest.fn().mockResolvedValueOnce(mockData);
-    useJournal.mockReturnValue({ getEntry: mockGetEntry, saveEntry: mockSaveEntry });
-  
-    act(() => {
-      render(<SelectedJournal selectedDate={mockSelectedDate} />);
     });
-  
-    // Wait for the journal entry to be rendered (morning entry in this case)
-    await waitFor(() => screen.getByText("morning entry"));
-  
-    // Ensure the "Save" button is rendered
-    const saveButtons = screen.getAllByText("Save");
-  
-    // Simulate editing the first textarea (gratitude)
-    const textareas = await screen.findAllByRole("textbox");
-    fireEvent.change(textareas[0], { target: { value: "Test gratitude" } });
-  
-    // Click the "Save" button after making changes
-    fireEvent.click(saveButtons[0]);
-  
-    // Use `waitFor` to ensure saveEntry is called after async state updates
-    await waitFor(() => expect(mockSaveEntry).toHaveBeenCalledTimes(1));  // Ensure it was called once
-  
-    // Validate that saveEntry was called with the correct arguments
-  await waitFor(() =>
-    expect(mockSaveEntry).toHaveBeenCalledWith(
-      mockSelectedDate, // date
-      "morning",        // entryType
-      {
-        gratitude: ["Test gratitude", "", ""],
-        goals: ["", "", ""],
-        affirmations: ["", "", ""],
-      } // data
-    )
-  );
+  });
+
+  test("renders the selected date", async () => {
+    render(<SelectedJournal selectedDate="2024-12-11" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("2024-12-11")).toBeInTheDocument();
+    });
+  });
+
+  test("fetches and displays journal data for the selected date", async () => {
+    render(<SelectedJournal selectedDate="2024-12-11" />);
+
+    await waitFor(() => {
+      expect(mockGetEntry).toHaveBeenCalledWith("2024-12-11");
+    });
+
+    expect(screen.getByText("It was a good day")).toBeInTheDocument();
+    expect(screen.getByText("Sleep earlier")).toBeInTheDocument();
+  });
+
+  test("displays default structure when no journal data exists for the selected date", async () => {
+    mockGetEntry.mockResolvedValueOnce(null);
+
+    render(<SelectedJournal selectedDate="2024-12-11" />);
+
+    await waitFor(() => {
+      expect(mockGetEntry).toHaveBeenCalledWith("2024-12-11");
+    });
+
+    expect(
+      screen.getByText((content) => content.includes("I am grateful for ..."))
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((content) =>
+        content.includes("What would make today great?")
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((content) =>
+        content.includes("Daily affirmation. I am ...")
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((content) =>
+        content.includes("Amazing things that happened today ...")
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((content) =>
+        content.includes("How could I have made today better ...")
+      )
+    ).toBeInTheDocument();
+  });
+
+  test("calls saveEntry when journal data is updated", async () => {
+    render(<SelectedJournal selectedDate="2024-12-11" />);
+
+    // Expect calls getEntry with the selectedDate
+    await waitFor(() => {
+      expect(mockGetEntry).toHaveBeenCalledWith("2024-12-11");
+    });
+
+    // Expect journal data
+    expect(screen.getByText("It was a good day")).toBeInTheDocument();
+    // Expect to see Edit button since it has existing journal data
+    expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
+
+    // Get and click edit button to switch to edit mode
+    const editButton = screen.getByRole("button", { name: "Edit" });
+    fireEvent.click(editButton);
+
+    // Query the textarea by its inner text content
+    const textarea = screen.getByText("It was a good day").closest("textarea");
+    // Simulate typing inside the textarea to update content
+    fireEvent.change(textarea, {
+      target: { value: "This is updated journal" },
+    });
+    // Get save button in evening entry
+    const eveningEntryContainer = screen.getByLabelText("evening-entry");
+    const saveButton = within(eveningEntryContainer).getByRole("button", {
+      name: "Save",
+    });
+    fireEvent.click(saveButton);
+
+    // Expect to call saveEntry
+    await waitFor(() => {
+      expect(mockSaveEntry).toHaveBeenCalled();
+    });
+    // Expect the updated journal data to render after save
+    expect(screen.getByText("This is updated journal")).toBeInTheDocument();
   });
 });

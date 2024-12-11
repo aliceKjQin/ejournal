@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { Roboto } from "next/font/google";
-import { useRouter } from "next/navigation";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["700"] });
 
@@ -28,15 +27,12 @@ export default function Calendar({
   selectedDate,
   completeEntries,
 }) {
-  const router = useRouter();
-
   const now = new Date();
   const currentMonth = now.getMonth(); // numerical number for month from 0 - 11
   const monthsArr = Object.keys(months);
   const [selectedMonth, setSelectedMonth] = useState(monthsArr[currentMonth]);
   const numericMonth = monthsArr.indexOf(selectedMonth);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const [daysHaveEntry, setDaysHaveEntry] = useState({});
 
   const monthNow = new Date(selectedYear, numericMonth, 1);
   const firstDayOfMonth = monthNow.getDay(); // calculates which day of the week July 1st falls on (e.g., 0 for Sunday, 1 for Monday).
@@ -49,7 +45,7 @@ export default function Calendar({
 
   function handleIncrementAndDecrementMonth(val) {
     // val +1 -1
-    // if we hit the bounds of the months, then we can just adjust the year that is displayed instead
+    // if hit the bounds of the months, then just adjust the year that is displayed instead
     if (numericMonth + val < 0) {
       // set month value = 11 which is Dec and decrement the year
       setSelectedMonth(monthsArr[monthsArr.length - 1]);
@@ -73,9 +69,8 @@ export default function Calendar({
   const numRows = Math.floor(daysToDisplay / 7) + (daysToDisplay % 7 ? 1 : 0);
 
   return (
-    //  backward and forward bar
     <div className="flex flex-col gap-2">
-      {/* stats bar */}
+      {/* Total journal days */}
       {Object.keys(completeEntries).length > 0 ? (
         <p
           className={`text-center sm:text-base mb-4 sm:mb-6 ${roboto.className}`}
@@ -89,6 +84,7 @@ export default function Calendar({
           and capture your thoughts?
         </p>
       )}
+      {/* Month, year backward and forward bar */}
       <div className="grid grid-cols-5 gap-4">
         <button
           className="mr-auto text-lg sm:text-xl duration-200 hover:opacity-60"
@@ -124,8 +120,11 @@ export default function Calendar({
           </span>
         ))}
       </div>
-      {/* calendar */}
-      <div className="flex flex-col overflow-hidden gap-1 mb-6">
+      {/* Calendar grid */}
+      <div
+        className="flex flex-col overflow-hidden gap-1 mb-6"
+        aria-label="calendar-grid"
+      >
         {[...Array(numRows).keys()].map((row, rowIndex) => {
           return (
             <div key={rowIndex} className="grid grid-cols-7">

@@ -60,7 +60,7 @@ export default function SelectedJournal({ selectedDate }) {
   const journalTypes = ["morning", "evening"];
 
   return (
-    <div>
+    <div aria-label="selected-journal">
       <p className="font-bold">
         Selected Date | <span className="">{selectedDate || "None"}</span>
       </p>

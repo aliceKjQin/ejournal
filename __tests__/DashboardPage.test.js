@@ -1,132 +1,136 @@
-import React, { act } from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  act,
+} from "@testing-library/react";
+import "@testing-library/jest-dom";
 import DashboardPage from "@/app/dashboard/page";
 import { useAuth } from "@/contexts/AuthContext";
-import "@testing-library/jest-dom"; // For matchers like toBeInTheDocument
+import Calendar from "@/app/dashboard/Calendar";
+import SelectedJournal from "@/app/dashboard/SelectedJournal";
 
 // Mock dependencies
 jest.mock("@/contexts/AuthContext", () => ({
   useAuth: jest.fn(),
 }));
+jest.mock("@/app/dashboard/Calendar", () =>
+  jest.fn(() => <div aria-label="calendar"></div>)
+);
+jest.mock("@/app/dashboard/SelectedJournal", () =>
+  jest.fn(() => <div aria-label="selected-journal"></div>)
+);
 
-jest.mock("@/app/dashboard/Calendar", () => {
-    return ({ onDateSelect, selectedDate, completeEntries }) => {
-      const handleDateSelect = (dayIndex) => {
-        const dateStr = `2024-12-${dayIndex}`;
-        onDateSelect(dateStr);
-      };
-  
-      return (
-        <div>
-          <p>Mock Calendar</p>
-          {/* Render a clickable calendar grid */}
-          {Array.from({ length: 31 }, (_, i) => {
-            const day = i + 1;
-            return (
-              <div
-                key={day}
-                role="gridcell"
-                aria-label={`2024-12-${day}`}
-                onClick={() => handleDateSelect(day)}
-                style={{ cursor: "pointer", margin: "5px", display: "inline-block" }}
-              >
-                {day}
-              </div>
-            );
-          })}
-          <p>Selected Date: {selectedDate}</p>
-          {Object.keys(completeEntries).length > 0 && <p>Entries Loaded</p>}
-        </div>
-      );
-    };
-  });
-  
+const mockUseAuth = useAuth;
 
-jest.mock("@/app/dashboard/SelectedJournal", () => {
-  return ({ selectedDate }) => (
-    <div>
-      <p>Mock SelectedJournal</p>
-      <p>Journal Date: {selectedDate}</p>
-    </div>
-  );
-});
-
-jest.mock("@/components/Loading", () => () => <p>Loading...</p>);
-jest.mock("@/components/Main", () => ({ children }) => <div>{children}</div>);
-
-describe("DashboardPage Component", () => {
-  const mockUser = { id: "123", name: "Test User" };
-  const mockUserEntriesObj = {
-    "2024-12-6": { morning: {}, evening: {} },
-    "2024-12-7": { morning: {}, evening: {} },
-  };
-
-  beforeEach(() => {
-    jest.resetAllMocks();
+describe("DashboardPage", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  test("should render the Loading component while authentication is loading", () => {
-    // Mock loading state
-    useAuth.mockReturnValue({
+  test("renders loading state when loadingAuth is true", () => {
+    mockUseAuth.mockReturnValue({
       user: null,
       userEntriesObj: null,
       loading: true,
     });
 
-    act(() => {
-      render(<DashboardPage />);
-    });
-
-    // Assert loading state
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    render(<DashboardPage />);
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
-  test("should render Calendar and SelectedJournal once authenticated", async () => {
-    // Mock authenticated state
-    useAuth.mockReturnValue({
-      user: mockUser,
-      userEntriesObj: mockUserEntriesObj,
+  test("renders Calendar and SelectedJournal with correct props", async () => {
+    const userEntriesObjMock = {
+      "2024-12-10": { journal: "example journal" },
+    };
+    const userMock = { uid: "mockUserId" };
+
+    mockUseAuth.mockReturnValue({
+      user: userMock,
+      userEntriesObj: userEntriesObjMock,
       loading: false,
     });
 
-    act(() => {
-      render(<DashboardPage />);
-    });
-
-    // Wait for Calendar and SelectedJournal to appear
-    await waitFor(() => {
-      expect(screen.getByText("Mock Calendar")).toBeInTheDocument();
-      expect(screen.getByText("Mock SelectedJournal")).toBeInTheDocument();
-    });
-
-    // Ensure correct props are passed to mocked components
-    expect(screen.getByText("Selected Date: 2024-12-6")).toBeInTheDocument(); // Default date
-    expect(screen.getByText("Entries Loaded")).toBeInTheDocument(); // Mock completeEntries passed to Calendar
-    expect(screen.getByText("Journal Date: 2024-12-6")).toBeInTheDocument(); // Mock SelectedJournal receives date
-  });
-
-  test("should update selected date when a new date is clicked in Calendar", async () => {
-    // Mock the user data and loading state from useAuth
-    useAuth.mockReturnValue({
-      user: {}, // mock user data
-      userEntriesObj: {}, // mock user entries
-      loading: false, // mock loading state
-    });
-
-    // Render the DashboardPage component with the mocked context
     render(<DashboardPage />);
 
-    console.log(screen.debug());
+    // Expect Calendar and SelectedJournal to render
+    expect(screen.getByLabelText("calendar")).toBeInTheDocument();
+    expect(screen.getByLabelText("selected-journal")).toBeInTheDocument();
 
+    // Expect Calendar received props: completeEntries, selectedDate, onDateSelect
+    expect(Calendar).toHaveBeenCalledWith(
+      expect.objectContaining({
+        completeEntries: userEntriesObjMock,
+        selectedDate: expect.any(String),
+        onDateSelect: expect.any(Function),
+      }),
+      {}
+    );
 
-  // Wait for the calendar grid cell to be available by checking for a day with the correct aria-label
-  await waitFor(() => screen.getByRole("gridcell", { name: "2024-12-7" }));
+    // Expect SelectedJournal receive prop selectedDate
+    expect(SelectedJournal).toHaveBeenCalledWith(
+      expect.objectContaining({ selectedDate: expect.any(String) }),
+      {}
+    );
+  });
 
-  // Simulate clicking the date (e.g., the 7th)
-  const dateCell = screen.getByRole("gridcell", { name: "2024-12-7" });
-  fireEvent.click(dateCell);
+  test("sets the default selectedDate to today", async () => {
+    // The default selectedDate is from the current date when component mounts
 
-    // Check if the selected date is updated to the expected date format
-    expect(screen.getByText("Selected Date: 2024-12-7")).toBeInTheDocument(); // Adjust based on the expected format
+    mockUseAuth.mockReturnValue({
+      user: { uid: "mockUserId" },
+      userEntriesObj: {},
+      loading: false,
+    });
+
+    render(<DashboardPage />);
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    const expectedDate = `${year}-${month}-${day}`;
+
+    await waitFor(() => {
+      expect(Calendar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          selectedDate: expectedDate,
+        }),
+        {}
+      );
+    });
+  });
+
+  test("updates selectedDate state in DashboardPage when a date is selected from Calendar, then triggers a re-render on Calendar and SelectedJournal with the new selectedDate", () => {
+    const userEntriesObjMock = {
+      "2024-12-10": { morning: {}, evening: {} },
+    };
+    const userMock = { uid: "mockUserId" };
+
+    mockUseAuth.mockReturnValue({
+      user: userMock,
+      userEntriesObj: userEntriesObjMock,
+      loading: false,
+    });
+
+    render(<DashboardPage />);
+
+    // Get all props passed to Calendar during first render
+    const calendarProps = Calendar.mock.calls[0][0];
+    // Simulate a user selecting a new date in Calendar by invoking onDateSelect
+    const newDate = "2024-12-12";
+    act(() => {
+      calendarProps.onDateSelect(newDate);
+    });
+
+    // Expect when selectedDate state updates in DashboardPage, it will trigger Calendar and SelectedJournal a re-render with the updated selectedDate
+    expect(Calendar).toHaveBeenCalledWith(
+      expect.objectContaining({ selectedDate: newDate }),
+      {}
+    );
+    expect(SelectedJournal).toHaveBeenCalledWith(
+      expect.objectContaining({ selectedDate: newDate }),
+      {}
+    );
   });
 });
